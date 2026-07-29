@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rappiteca · Catalog</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --ink: #20262F;
+      --ink-soft: #565F6B;
+      --paper: #F1EEE6;
+      --paper-raised: #FFFFFF;
+      --brass: #9A7B3C;
+      --brass-deep: #7C6129;
+      --line: #D8D2C2;
+      --radius: 2px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+    }
+
+    /* ---------- Navbar ---------- */
+    header.nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 40px;
+      border-bottom: 1px solid var(--line);
+      background: var(--paper-raised);
+    }
+
+    .nav-brand {
+      font-family: 'Fraunces', serif;
+      font-size: 1.25rem;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      color: var(--ink);
+      text-decoration: none;
+    }
+
+    .nav-actions {
+      display: flex;
+      gap: 12px;
+    }
+
+    .btn {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 500;
+      padding: 9px 20px;
+      border-radius: var(--radius);
+      text-decoration: none;
+      transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+    }
+
+    .btn-ghost {
+      color: var(--ink);
+      border: 1px solid var(--line);
+      background: transparent;
+    }
+    .btn-ghost:hover {
+      border-color: var(--brass);
+      color: var(--brass-deep);
+    }
+
+    .btn-solid {
+      color: #fff;
+      background: var(--ink);
+      border: 1px solid var(--ink);
+    }
+    .btn-solid:hover {
+      background: var(--brass-deep);
+      border-color: var(--brass-deep);
+    }
+
+    .btn:focus-visible {
+      outline: 2px solid var(--brass);
+      outline-offset: 2px;
+    }
+
+    /* ---------- Hero / search ---------- */
+    main {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 90px 24px 60px;
+      text-align: center;
+    }
+
+    .eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--brass-deep);
+      margin: 0 0 14px;
+    }
+
+    h1.title {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(2.4rem, 5vw, 3.4rem);
+      font-weight: 600;
+      margin: 0 0 10px;
+      line-height: 1.05;
+    }
+
+    .rule {
+      width: 64px;
+      height: 2px;
+      background: var(--brass);
+      margin: 18px auto 20px;
+      border: none;
+    }
+
+    .subtitle {
+      color: var(--ink-soft);
+      font-size: 1rem;
+      line-height: 1.6;
+      margin: 0 0 44px;
+    }
+
+    /* Search card, styled like a catalog index card */
+    .search-card {
+      background: var(--paper-raised);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 22px;
+      text-align: left;
+      box-shadow: 0 1px 0 rgba(32, 38, 47, 0.03);
+    }
+
+    .search-label {
+      display: block;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--ink-soft);
+      margin-bottom: 10px;
+    }
+
+    form.search-form {
+      display: flex;
+      gap: 10px;
+    }
+
+    .search-form input[type="text"] {
+      flex: 1;
+      padding: 13px 14px;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.95rem;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--paper);
+      color: var(--ink);
+    }
+
+    .search-form input[type="text"]::placeholder {
+      color: #9A9587;
+    }
+
+    .search-form input[type="text"]:focus {
+      outline: none;
+      border-color: var(--brass);
+    }
+
+    .search-form button {
+      font-family: 'Inter', sans-serif;
+      font-weight: 500;
+      font-size: 0.9rem;
+      padding: 0 22px;
+      border: 1px solid var(--ink);
+      background: var(--ink);
+      color: #fff;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+    .search-form button:hover { background: var(--brass-deep); border-color: var(--brass-deep); }
+    .search-form button:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
+
+    @media (max-width: 560px) {
+      header.nav { padding: 14px 20px; }
+      .search-form { flex-wrap: wrap; }
+      .search-form button { padding: 12px 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="nav">
+    <a href="#" class="nav-brand">Rappiteca</a>
+    <nav class="nav-actions">
+      <a href="#" class="btn btn-ghost">Sign up</a>
+      <a href="#" class="btn btn-solid">Log in</a>
+    </nav>
+  </header>
+
+  <main>
+    <p class="eyebrow">Online catalog</p>
+    <h1 class="title">Rappiteca</h1>
+    <hr class="rule">
+    <p class="subtitle">
+      Check book availability in real time. No account needed to browse the catalog.
+    </p>
+
+    <div class="search-card">
+      <span class="search-label">Search the catalog</span>
+      <form class="search-form">
+        <input
+          type="text"
+          name="q"
+          placeholder="Title, author, category, or ISBN…"
+        >
+        <button type="submit">Search</button>
+      </form>
+    </div>
+
+    <!-- Featured / search results can go here -->
+  </main>
+
+</body>
+</html>
