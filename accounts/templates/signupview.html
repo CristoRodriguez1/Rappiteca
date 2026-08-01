@@ -1,0 +1,84 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rappiteca · Sign Up</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+
+  <header class="nav">
+    <a href="{% url 'home' %}" class="nav-brand">Rappiteca</a>
+    <nav class="nav-actions">
+      <span class="nav-hint">Already have an account?</span>
+      <a href="#" class="btn btn-solid">Log in</a>
+    </nav>
+  </header>
+
+  <main>
+    <div class="form-card">
+      <p class="eyebrow">Create your account</p>
+      <h1 class="title">Sign Up</h1>
+      <hr class="rule">
+      <p class="subtitle">
+        Register to request loans, reserve books, and track due dates.
+      </p>
+
+      {% if messages %}
+        {% for message in messages %}
+          <p class="form-message form-message-{{ message.tags }}">{{ message }}</p>
+        {% endfor %}
+      {% endif %}
+
+      <form class="auth-form" method="post" novalidate>
+        {% csrf_token %}
+
+        <div class="field-row">
+          <div class="field">
+            <label for="{{ form.name.id_for_label }}">First name</label>
+            {{ form.name }}
+            {% if form.name.errors %}<span class="field-error">{{ form.name.errors.0 }}</span>{% endif %}
+          </div>
+          <div class="field">
+            <label for="{{ form.last_name.id_for_label }}">Last name</label>
+            {{ form.last_name }}
+            {% if form.last_name.errors %}<span class="field-error">{{ form.last_name.errors.0 }}</span>{% endif %}
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="{{ form.email.id_for_label }}">Email</label>
+          {{ form.email }}
+          {% if form.email.errors %}<span class="field-error">{{ form.email.errors.0 }}</span>{% endif %}
+        </div>
+
+        <div class="field">
+          <label for="{{ form.password.id_for_label }}">Password</label>
+          {{ form.password }}
+          {% if form.password.errors %}<span class="field-error">{{ form.password.errors.0 }}</span>{% endif %}
+        </div>
+
+        <div class="field">
+          <label for="{{ form.confirm_password.id_for_label }}">Confirm password</label>
+          {{ form.confirm_password }}
+          {% if form.confirm_password.errors %}<span class="field-error">{{ form.confirm_password.errors.0 }}</span>{% endif %}
+        </div>
+
+        <button type="submit" class="btn btn-block">Create account</button>
+      </form>
+
+      <p class="form-footer">
+        By signing up, you agree to Rappiteca's borrowing terms and library policies.
+      </p>
+    </div>
+  </main>
+
+</body>
+</html>
