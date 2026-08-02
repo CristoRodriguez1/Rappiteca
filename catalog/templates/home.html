@@ -1,4 +1,4 @@
- {% load static %}
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,15 +10,26 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <link rel="stylesheet" href="{% static 'catalog/css/style.css' %}">
 </head>
 <body>
 
   <header class="nav">
     <a href="#" class="nav-brand">Rappiteca</a>
+
+    <div class="nav-center">
+      {% if current_user %}
+        <span class="nav-welcome">Welcome, {{ current_user.name }}</span>
+      {% endif %}
+    </div>
+
     <nav class="nav-actions">
-      <a href="{% url 'signup' %}" class="btn btn-ghost">Sign up</a>
-      <a href="#" class="btn btn-solid">Log in</a>
+      {% if current_user %}
+        <a href="#" class="btn btn-solid">Log out</a>
+      {% else %}
+        <a href="{% url 'signup' %}" class="btn btn-ghost">Sign up</a>
+        <a href="{% url 'login' %}" class="btn btn-solid">Log in</a>
+      {% endif %}
     </nav>
   </header>
 

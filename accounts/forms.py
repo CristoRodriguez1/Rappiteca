@@ -1,4 +1,5 @@
 from django import forms
+
 from .models import User
 
 
@@ -36,3 +37,32 @@ class SignupForm(forms.ModelForm):
         if commit:
             user.save()
         return user
+
+
+class LoginForm(forms.Form):
+    email = forms.EmailField(
+        widget=forms.EmailInput(attrs={'placeholder': 'jane.doe@university.edu'})
+    )
+    password = forms.CharField(
+        widget=forms.PasswordInput(attrs={'placeholder': 'Your password'})
+    )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        email = cleaned_data.get('email')
+        password = cleaned_data.get('password')
+
+        if email and password:
+            try:
+                user = User.objects.get(email__iexact=email)
+            except User.DoesNotExist:
+                user = None
+
+            # Same error for "no user" and "wrong password" on purpose —
+            # doesn't reveal which part was wrong.
+            if user is None or user.password != password:
+                raise forms.ValidationError('Invalid email or password.')
+
+            self.user = user  # stash the matched user so the view can log them in
+
+        return cleaned_data

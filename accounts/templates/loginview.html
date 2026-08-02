@@ -1,0 +1,67 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rappiteca · Log In</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="{% static 'accounts/css/style.css' %}">
+</head>
+<body>
+
+  <header class="nav">
+    <a href="{% url 'home' %}" class="nav-brand">Rappiteca</a>
+    <nav class="nav-actions">
+      <span class="nav-hint">Don't have an account?</span>
+      <a href="{% url 'signup' %}" class="btn btn-solid">Sign up</a>
+    </nav>
+  </header>
+
+  <main>
+    <div class="form-card">
+      <p class="eyebrow">Welcome back</p>
+      <h1 class="title">Log In</h1>
+      <hr class="rule">
+      <p class="subtitle">
+        Sign in to manage your loans, reservations, and due dates.
+      </p>
+
+      {% if messages %}
+        {% for message in messages %}
+          <p class="form-message form-message-{{ message.tags }}">{{ message }}</p>
+        {% endfor %}
+      {% endif %}
+
+      <form class="auth-form" method="post" novalidate>
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+          <p class="form-message form-message-error">{{ form.non_field_errors.0 }}</p>
+        {% endif %}
+
+        <div class="field">
+          <label for="{{ form.email.id_for_label }}">Email</label>
+          {{ form.email }}
+        </div>
+
+        <div class="field">
+          <label for="{{ form.password.id_for_label }}">Password</label>
+          {{ form.password }}
+        </div>
+
+        <button type="submit" class="btn btn-block">Log in</button>
+      </form>
+
+      <!-- <p class="form-footer">
+        Forgot your password? <a href="#">Reset it here</a>.
+      </p> -->
+    </div>
+  </main>
+
+</body>
+</html>
