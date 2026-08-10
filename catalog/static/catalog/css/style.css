@@ -220,3 +220,136 @@ header.nav {
   align-items: center;
   gap: 12px;
 }
+
+/* ---------- Search results ---------- */
+ 
+.empty-state {
+  color: var(--ink-soft);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem;
+  margin: 30px 0;
+}
+ 
+.results-list {
+  margin-top: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: left;
+}
+ 
+.result-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+}
+ 
+.result-cover {
+  width: 56px;
+  height: 80px;
+  flex-shrink: 0;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--paper);
+  border: 1px solid var(--line);
+}
+ 
+.result-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+ 
+.result-cover-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--ink-soft);
+  text-align: center;
+  padding: 4px;
+}
+ 
+.result-info {
+  flex: 1;
+}
+ 
+.result-title {
+  font-family: 'Fraunces', serif;
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin: 0 0 4px;
+  color: var(--ink);
+}
+ 
+.result-meta {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  margin: 0;
+}
+ 
+.result-action {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+ 
+.status-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 5px 10px;
+  border-radius: var(--radius);
+  white-space: nowrap;
+}
+ 
+.status-available {
+  background: #E4EDE3;
+  color: #3C6B3A;
+}
+ 
+.status-unavailable {
+  background: #F0E2DD;
+  color: #9A4A32;
+}
+ 
+.status-info {
+  background: #E4E7ED;
+  color: #3A4C6B;
+}
+ 
+.btn-small {
+  padding: 7px 14px;
+  font-size: 0.8rem;
+}
+ 
+.form-message {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  padding: 10px 16px;
+  border-radius: var(--radius);
+  margin: 20px 0 0;
+  text-align: left;
+}
+ 
+.form-message-success {
+  background: #E4EDE3;
+  color: #3C6B3A;
+}
+ 
+.form-message-error {
+  background: #F0E2DD;
+  color: #9A4A32;
+}
