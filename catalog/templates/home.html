@@ -15,7 +15,7 @@
 <body>
 
   <header class="nav">
-    <a href="#" class="nav-brand">Rappiteca</a>
+    <a href="{% url 'home' %}" class="nav-brand">Rappiteca</a>
 
     <div class="nav-center">
       {% if current_user %}
@@ -25,7 +25,7 @@
 
     <nav class="nav-actions">
       {% if current_user %}
-        <a href="#" class="btn btn-solid">Log out</a>
+        <a href="{% url 'logout' %}" class="btn btn-solid">Log out</a>
       {% else %}
         <a href="{% url 'signup' %}" class="btn btn-ghost">Sign up</a>
         <a href="{% url 'login' %}" class="btn btn-solid">Log in</a>
@@ -43,17 +43,73 @@
 
     <div class="search-card">
       <span class="search-label">Search the catalog</span>
-      <form class="search-form">
+      <form class="search-form" action="{% url 'home' %}" method="get">
         <input
           type="text"
           name="q"
+          value="{{ searchTerm|default:'' }}"
           placeholder="Title, author, category, or ISBN…"
         >
         <button type="submit">Search</button>
       </form>
     </div>
 
-    <!-- Featured / search results can go here -->
+    {% if messages %}
+      {% for message in messages %}
+        <p class="form-message form-message-{{ message.tags }}">{{ message }}</p>
+      {% endfor %}
+    {% endif %}
+
+    {% if busqueda_vacia %}
+      <p class="empty-state">No results for "{{ searchTerm }}".</p>
+    {% endif %}
+
+    {% if busqueda_activa %}
+      <div class="results-list">
+        {% for item in resultados %}
+          <div class="result-card">
+            <div class="result-cover">
+              {% if item.book.image %}
+                <img src="{{ item.book.image.url }}" alt="{{ item.book.title }}">
+              {% else %}
+                <span class="result-cover-placeholder">No cover</span>
+              {% endif %}
+            </div>
+
+            <div class="result-info">
+              <h3 class="result-title">{{ item.book.title }}</h3>
+              <p class="result-meta">{{ item.book.author }}{% if item.book.category %} · {{ item.book.category }}{% endif %}</p>
+            </div>
+
+            <div class="result-action">
+              {% if item.prestamo_activo.estado == 'reservado' %}
+                <span class="status-badge status-info">Reserved — pending pickup</span>
+                <form action="{% url 'cancelar_reserva' item.prestamo_activo.id %}" method="post">
+                  {% csrf_token %}
+                  <input type="hidden" name="q" value="{{ searchTerm|default:'' }}">
+                  <button type="submit" class="btn btn-ghost btn-small">Cancel reservation</button>
+                </form>
+              {% elif item.prestamo_activo.estado == 'prestado' %}
+                <span class="status-badge status-info">You have this checked out</span>
+              {% elif item.estado == 'Disponible' %}
+                <span class="status-badge status-available">Available</span>
+                {% if current_user %}
+                  <form action="{% url 'reservar_libro' item.book.id %}" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="q" value="{{ searchTerm|default:'' }}">
+                    <button type="submit" class="btn btn-solid btn-small">Reserve</button>
+                  </form>
+                {% else %}
+                  <a href="{% url 'login' %}" class="btn btn-ghost btn-small">Log in to reserve</a>
+                {% endif %}
+              {% else %}
+                <span class="status-badge status-unavailable">Checked out</span>
+              {% endif %}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
   </main>
 
 </body>
