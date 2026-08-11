@@ -25,6 +25,9 @@
 
     <nav class="nav-actions">
       {% if current_user %}
+        {% if current_user.role == 'adm' %}
+          <a href="{% url 'gestionar_prestamos' %}" class="btn btn-ghost">Admin panel</a>
+        {% endif %}
         <a href="{% url 'logout' %}" class="btn btn-solid">Log out</a>
       {% else %}
         <a href="{% url 'signup' %}" class="btn btn-ghost">Sign up</a>

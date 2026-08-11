@@ -33,6 +33,7 @@ urlpatterns = [
     path('admin-prestamos/', views.gestionar_prestamos, name='gestionar_prestamos'),
     path('admin-prestamos/<int:prestamo_id>/recogido/', views.marcar_recogido, name='marcar_recogido'),
     path('admin-prestamos/<int:prestamo_id>/devuelto/', views.marcar_devuelto, name='marcar_devuelto'),
+    path('admin-inventario/', views.ver_inventario, name='ver_inventario'),
 ]
 
 if settings.DEBUG:
