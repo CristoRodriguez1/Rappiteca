@@ -1,0 +1,93 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rappiteca · Admin · Loans</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="{% static 'catalog/css/style.css' %}">
+</head>
+<body>
+
+  <header class="nav">
+    <a href="{% url 'home' %}" class="nav-brand">Rappiteca</a>
+    <div class="nav-center">
+      <span class="nav-welcome">Admin panel</span>
+    </div>
+    <nav class="nav-actions">
+      <a href="{% url 'logout' %}" class="btn btn-solid">Log out</a>
+    </nav>
+  </header>
+
+  <main class="admin-main">
+    <p class="eyebrow">Admin panel</p>
+    <h1 class="title">Loans</h1>
+    <hr class="rule">
+
+    <nav class="admin-tabs">
+      <a href="{% url 'gestionar_prestamos' %}" class="admin-tab admin-tab-active">Loans</a>
+      <a href="{% url 'ver_inventario' %}" class="admin-tab">Inventory</a>
+    </nav>
+
+    {% if messages %}
+      {% for message in messages %}
+        <p class="form-message form-message-{{ message.tags }}">{{ message }}</p>
+      {% endfor %}
+    {% endif %}
+
+    {% if prestamos %}
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Book</th>
+              <th>User</th>
+              <th>Status</th>
+              <th>Reserved on</th>
+              <th>Picked up on</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for prestamo in prestamos %}
+              <tr>
+                <td>{{ prestamo.book.title }}</td>
+                <td>{{ prestamo.user.name }} {{ prestamo.user.last_name }}<br><span class="cell-sub">{{ prestamo.user.email }}</span></td>
+                <td>
+                  {% if prestamo.estado == 'reservado' %}
+                    <span class="status-badge status-info">Reserved</span>
+                  {% else %}
+                    <span class="status-badge status-unavailable">Checked out</span>
+                  {% endif %}
+                </td>
+                <td>{{ prestamo.fecha_reserva|date:"M d, Y H:i" }}</td>
+                <td>{{ prestamo.fecha_recogida|date:"M d, Y H:i"|default:"—" }}</td>
+                <td class="admin-table-actions">
+                  {% if prestamo.estado == 'reservado' %}
+                    <form action="{% url 'marcar_recogido' prestamo.id %}" method="post">
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-ghost btn-small">Mark picked up</button>
+                    </form>
+                  {% endif %}
+                  <form action="{% url 'marcar_devuelto' prestamo.id %}" method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-solid btn-small">Mark returned</button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p class="empty-state">No active loans or reservations right now.</p>
+    {% endif %}
+  </main>
+
+</body>
+</html>

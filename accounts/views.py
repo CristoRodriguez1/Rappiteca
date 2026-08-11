@@ -25,6 +25,8 @@ def login_view(request):
             request.session['user_id'] = user.id
             request.session['user_role'] = user.role
             messages.success(request, f'Welcome back, {user.name}!')
+            if user.role == 'adm':
+                return redirect('gestionar_prestamos')
             return redirect('/')
     else:
         form = LoginForm()

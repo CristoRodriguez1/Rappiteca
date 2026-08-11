@@ -113,12 +113,24 @@ def gestionar_prestamos(request):
     if not _es_admin(request):
         messages.error(request, 'No tienes permisos para ver esta página.')
         return redirect('home')
- 
+
     prestamos = Prestamo.objects.select_related('user', 'book').exclude(
         estado__in=[Prestamo.ESTADO_DEVUELTO, Prestamo.ESTADO_CANCELADO]
     ).order_by('-fecha_reserva')
- 
+
     return render(request, 'admin_prestamos.html', {'prestamos': prestamos})
+
+
+# ---------- Panel de administrador: inventario (solo lectura) ----------
+
+def ver_inventario(request):
+    if not _es_admin(request):
+        messages.error(request, 'No tienes permisos para ver esta página.')
+        return redirect('home')
+
+    libros = Book.objects.all().order_by('title')
+
+    return render(request, 'admin_inventario.html', {'libros': libros})
  
  
 def marcar_recogido(request, prestamo_id):

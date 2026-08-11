@@ -353,3 +353,89 @@ header.nav {
   background: #F0E2DD;
   color: #9A4A32;
 }
+
+/* ---------- Admin panel ---------- */
+.admin-main {
+  max-width: 980px;
+  text-align: left;
+}
+
+.admin-tabs {
+  display: flex;
+  gap: 8px;
+  margin: 0 0 28px;
+  border-bottom: 1px solid var(--line);
+}
+
+.admin-tab {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  text-decoration: none;
+  padding: 10px 4px 12px;
+  margin-bottom: -1px;
+  border-bottom: 2px solid transparent;
+}
+
+.admin-tab:hover {
+  color: var(--ink);
+}
+
+.admin-tab-active {
+  color: var(--ink);
+  border-bottom-color: var(--brass);
+}
+
+.admin-table-wrap {
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow-x: auto;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+}
+
+.admin-table th {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  text-align: left;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+
+.admin-table td {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: middle;
+}
+
+.admin-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.cell-sub {
+  color: var(--ink-soft);
+  font-size: 0.8rem;
+}
+
+.admin-table-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  white-space: nowrap;
+}
+
+@media (max-width: 720px) {
+  .admin-main { padding-left: 20px; padding-right: 20px; }
+}
