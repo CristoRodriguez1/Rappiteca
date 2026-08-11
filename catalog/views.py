@@ -3,6 +3,7 @@ from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404, redirect, render
  
 from accounts.models import User
+from .forms import BookForm
 from .models import Book, Prestamo
  
  
@@ -131,6 +132,25 @@ def ver_inventario(request):
     libros = Book.objects.all().order_by('title')
 
     return render(request, 'admin_inventario.html', {'libros': libros})
+
+
+# ---------- Panel de administrador: agregar libro al inventario ----------
+
+def agregar_libro(request):
+    if not _es_admin(request):
+        messages.error(request, 'No tienes permisos para ver esta página.')
+        return redirect('home')
+
+    if request.method == 'POST':
+        form = BookForm(request.POST, request.FILES)
+        if form.is_valid():
+            book = form.save()
+            messages.success(request, f'"{book.title}" se agregó al inventario.')
+            return redirect('ver_inventario')
+    else:
+        form = BookForm()
+
+    return render(request, 'admin_agregar_libro.html', {'form': form})
  
  
 def marcar_recogido(request, prestamo_id):

@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Rappiteca · Admin · Inventory</title>
+  <title>Rappiteca · Admin · Add book</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -26,7 +26,7 @@
 
   <main class="admin-main">
     <p class="eyebrow">Admin panel</p>
-    <h1 class="title">Inventory</h1>
+    <h1 class="title">Add book</h1>
     <hr class="rule">
 
     <nav class="admin-tabs">
@@ -34,50 +34,36 @@
       <a href="{% url 'ver_inventario' %}" class="admin-tab admin-tab-active">Inventory</a>
     </nav>
 
-    <div class="admin-toolbar">
-      <a href="{% url 'agregar_libro' %}" class="btn btn-solid btn-small">Add book</a>
-    </div>
-
     {% if messages %}
       {% for message in messages %}
         <p class="form-message form-message-{{ message.tags }}">{{ message }}</p>
       {% endfor %}
     {% endif %}
 
-    {% if libros %}
-      <div class="admin-table-wrap">
-        <table class="admin-table">
-          <thead>
-            <tr>
-              <th>Title</th>
-              <th>Author</th>
-              <th>Category</th>
-              <th>Available / Total</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for libro in libros %}
-              <tr>
-                <td>{{ libro.title }}</td>
-                <td>{{ libro.author }}</td>
-                <td>{{ libro.category|default:"—" }}</td>
-                <td>{{ libro.available_copies }} / {{ libro.total_copies }}</td>
-                <td>
-                  {% if libro.esta_disponible %}
-                    <span class="status-badge status-available">Available</span>
-                  {% else %}
-                    <span class="status-badge status-unavailable">Unavailable</span>
-                  {% endif %}
-                </td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    {% else %}
-      <p class="empty-state">No books in the catalog yet.</p>
-    {% endif %}
+    <div class="admin-form-card">
+      <form class="admin-form" method="post" enctype="multipart/form-data" novalidate>
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+          <p class="form-message form-message-error">{{ form.non_field_errors.0 }}</p>
+        {% endif %}
+
+        {% for field in form %}
+          <div class="field">
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}
+              <p class="field-error">{{ field.errors.0 }}</p>
+            {% endif %}
+          </div>
+        {% endfor %}
+
+        <div class="admin-form-actions">
+          <a href="{% url 'ver_inventario' %}" class="btn btn-ghost">Cancel</a>
+          <button type="submit" class="btn btn-solid">Add book</button>
+        </div>
+      </form>
+    </div>
   </main>
 
 </body>

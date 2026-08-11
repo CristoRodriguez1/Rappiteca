@@ -436,6 +436,85 @@ header.nav {
   white-space: nowrap;
 }
 
+.admin-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin: 0 0 16px;
+}
+
+/* ---------- Admin form (add book) ---------- */
+.admin-form-card {
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 28px;
+  max-width: 620px;
+}
+
+.admin-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.admin-form .field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.admin-form .field label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.admin-form .field input,
+.admin-form .field textarea {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.95rem;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper);
+  color: var(--ink);
+  width: 100%;
+  resize: vertical;
+}
+
+.admin-form .field input::placeholder,
+.admin-form .field textarea::placeholder {
+  color: #9A9587;
+}
+
+.admin-form .field input:focus,
+.admin-form .field textarea:focus {
+  outline: none;
+  border-color: var(--brass);
+}
+
+.field-error {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.8rem;
+  color: #9A4A32;
+  margin: 2px 0 0;
+}
+
+.admin-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.admin-form-actions button {
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+}
+
 @media (max-width: 720px) {
   .admin-main { padding-left: 20px; padding-right: 20px; }
+  .admin-form-card { padding: 20px; }
 }

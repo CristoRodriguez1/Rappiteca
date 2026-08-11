@@ -34,6 +34,7 @@ urlpatterns = [
     path('admin-prestamos/<int:prestamo_id>/recogido/', views.marcar_recogido, name='marcar_recogido'),
     path('admin-prestamos/<int:prestamo_id>/devuelto/', views.marcar_devuelto, name='marcar_devuelto'),
     path('admin-inventario/', views.ver_inventario, name='ver_inventario'),
+    path('admin-inventario/agregar/', views.agregar_libro, name='agregar_libro'),
 ]
 
 if settings.DEBUG:
