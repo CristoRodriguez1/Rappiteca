@@ -122,7 +122,7 @@ def gestionar_prestamos(request):
     return render(request, 'admin_prestamos.html', {'prestamos': prestamos})
 
 
-# ---------- Panel de administrador: inventario (solo lectura) ----------
+# ---------- Panel de administrador: inventario ----------
 
 def ver_inventario(request):
     if not _es_admin(request):
@@ -132,6 +132,34 @@ def ver_inventario(request):
     libros = Book.objects.all().order_by('title')
 
     return render(request, 'admin_inventario.html', {'libros': libros})
+
+
+def eliminar_libro(request, book_id):
+    """Admin: quitar un libro del inventario (borrado real en la DB)."""
+    if request.method != 'POST':
+        return redirect('ver_inventario')
+
+    if not _es_admin(request):
+        messages.error(request, 'No tienes permisos.')
+        return redirect('home')
+
+    book = get_object_or_404(Book, id=book_id)
+
+    activos = Prestamo.objects.filter(
+        book=book,
+        estado__in=[Prestamo.ESTADO_RESERVADO, Prestamo.ESTADO_PRESTADO],
+    ).exists()
+    if activos:
+        messages.error(
+            request,
+            f'No se puede quitar "{book.title}": tiene reservas o préstamos activos.',
+        )
+        return redirect('ver_inventario')
+
+    titulo = book.title
+    book.delete()
+    messages.success(request, f'Se quitó "{titulo}" del inventario.')
+    return redirect('ver_inventario')
 
 
 # ---------- Panel de administrador: agregar libro al inventario ----------
@@ -151,13 +179,17 @@ def agregar_libro(request):
         form = BookForm()
 
     return render(request, 'admin_agregar_libro.html', {'form': form})
- 
- 
+
+
 def marcar_recogido(request, prestamo_id):
+    """Admin marca que el usuario ya recogió el libro (reservado → prestado)."""
+    if request.method != 'POST':
+        return redirect('gestionar_prestamos')
+
     if not _es_admin(request):
         messages.error(request, 'No tienes permisos.')
         return redirect('home')
- 
+
     prestamo = get_object_or_404(Prestamo, id=prestamo_id)
     try:
         prestamo.marcar_recogido()
@@ -165,13 +197,16 @@ def marcar_recogido(request, prestamo_id):
     except ValidationError as e:
         messages.error(request, str(e))
     return redirect('gestionar_prestamos')
- 
- 
+
+
 def marcar_devuelto(request, prestamo_id):
+    if request.method != 'POST':
+        return redirect('gestionar_prestamos')
+
     if not _es_admin(request):
         messages.error(request, 'No tienes permisos.')
         return redirect('home')
- 
+
     prestamo = get_object_or_404(Prestamo, id=prestamo_id)
     try:
         prestamo.marcar_devuelto()
@@ -179,3 +214,36 @@ def marcar_devuelto(request, prestamo_id):
     except ValidationError as e:
         messages.error(request, str(e))
     return redirect('gestionar_prestamos')
+
+
+# ---------- Acción del usuario: confirmar que ya recogió el libro ----------
+
+def confirmar_recogida(request, prestamo_id):
+    """
+    El propio usuario indica que ya recogió el libro.
+    Pasa de reservado → prestado y deja de poder cancelar.
+    """
+    if request.method != 'POST':
+        return redirect('home')
+
+    current_user = _usuario_actual(request)
+    if not current_user:
+        messages.error(request, 'Debes iniciar sesión.')
+        return redirect('login')
+
+    prestamo = get_object_or_404(Prestamo, id=prestamo_id)
+
+    if prestamo.user_id != current_user.id:
+        messages.error(request, 'No puedes confirmar la recogida de este préstamo.')
+        return redirect('home')
+
+    try:
+        prestamo.marcar_recogido()
+        messages.success(
+            request,
+            f'Confirmaste la recogida de "{prestamo.book.title}". Ya no puedes cancelar.',
+        )
+    except ValidationError as e:
+        messages.error(request, str(e))
+
+    return redirect(f"/?q={request.POST.get('q', '')}")

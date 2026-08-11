@@ -87,13 +87,21 @@
             <div class="result-action">
               {% if item.prestamo_activo.estado == 'reservado' %}
                 <span class="status-badge status-info">Reserved — pending pickup</span>
-                <form action="{% url 'cancelar_reserva' item.prestamo_activo.id %}" method="post">
-                  {% csrf_token %}
-                  <input type="hidden" name="q" value="{{ searchTerm|default:'' }}">
-                  <button type="submit" class="btn btn-ghost btn-small">Cancel reservation</button>
-                </form>
+                <div class="result-action-stack">
+                  <form action="{% url 'confirmar_recogida' item.prestamo_activo.id %}" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="q" value="{{ searchTerm|default:'' }}">
+                    <button type="submit" class="btn btn-solid btn-small">Ya lo recogí</button>
+                  </form>
+                  <form action="{% url 'cancelar_reserva' item.prestamo_activo.id %}" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="q" value="{{ searchTerm|default:'' }}">
+                    <button type="submit" class="btn btn-ghost btn-small">Cancel reservation</button>
+                  </form>
+                </div>
               {% elif item.prestamo_activo.estado == 'prestado' %}
-                <span class="status-badge status-info">You have this checked out</span>
+                <span class="status-badge status-unavailable">Recogido — en tu poder</span>
+                <p class="result-note">Ya no puedes cancelar esta reserva.</p>
               {% elif item.estado == 'Disponible' %}
                 <span class="status-badge status-available">Available</span>
                 {% if current_user %}

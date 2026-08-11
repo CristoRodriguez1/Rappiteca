@@ -518,3 +518,28 @@ header.nav {
   .admin-main { padding-left: 20px; padding-right: 20px; }
   .admin-form-card { padding: 20px; }
 }
+
+.result-action-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.result-note {
+  margin: 6px 0 0;
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+  max-width: 180px;
+  text-align: right;
+}
+
+.btn-danger {
+  color: #9A4A32;
+  border-color: #E0C4B8;
+}
+
+.btn-danger:hover {
+  background: #F0E2DD;
+  color: #7A3524;
+}

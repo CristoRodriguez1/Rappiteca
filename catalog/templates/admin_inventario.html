@@ -54,6 +54,7 @@
               <th>Category</th>
               <th>Available / Total</th>
               <th>Status</th>
+              <th></th>
             </tr>
           </thead>
           <tbody>
@@ -69,6 +70,16 @@
                   {% else %}
                     <span class="status-badge status-unavailable">Unavailable</span>
                   {% endif %}
+                </td>
+                <td class="admin-table-actions">
+                  <form
+                    action="{% url 'eliminar_libro' libro.id %}"
+                    method="post"
+                    onsubmit="return confirm('¿Quitar &quot;{{ libro.title|escapejs }}&quot; del inventario? Se borrará de la base de datos.');"
+                  >
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-ghost btn-small btn-danger">Quitar libro</button>
+                  </form>
                 </td>
               </tr>
             {% endfor %}

@@ -30,10 +30,12 @@ urlpatterns = [
 
     path('reservar/<int:book_id>/', views.reservar_libro, name='reservar_libro'),
     path('cancelar-reserva/<int:prestamo_id>/', views.cancelar_reserva, name='cancelar_reserva'),
+    path('confirmar-recogida/<int:prestamo_id>/', views.confirmar_recogida, name='confirmar_recogida'),
     path('admin-prestamos/', views.gestionar_prestamos, name='gestionar_prestamos'),
     path('admin-prestamos/<int:prestamo_id>/recogido/', views.marcar_recogido, name='marcar_recogido'),
     path('admin-prestamos/<int:prestamo_id>/devuelto/', views.marcar_devuelto, name='marcar_devuelto'),
     path('admin-inventario/', views.ver_inventario, name='ver_inventario'),
+    path('admin-inventario/<int:book_id>/quitar/', views.eliminar_libro, name='eliminar_libro'),
     path('admin-inventario/agregar/', views.agregar_libro, name='agregar_libro'),
 ]
 
