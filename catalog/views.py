@@ -1,7 +1,8 @@
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404, redirect, render
- 
+from django.db.models import Q
+
 from accounts.models import User
 from .forms import BookForm
 from .models import Book, Prestamo
@@ -29,7 +30,12 @@ def home(request):
     search_term = request.GET.get('q')
     books = Book.objects.all()
     if search_term:
-        books = books.filter(title__icontains=search_term)  # amplía a author/isbn si quieres
+        books = books.filter(
+            Q(title__icontains=search_term)
+            | Q(author__icontains=search_term)
+            | Q(isbn__icontains=search_term)
+            | Q(category__icontains=search_term)
+        )
  
     resultados = []
     for book in books:
