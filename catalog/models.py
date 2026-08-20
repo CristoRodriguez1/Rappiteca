@@ -9,6 +9,9 @@ class Book(models.Model):
     author = models.CharField(max_length=150)
     isbn = models.CharField(max_length=20, unique=True, blank=True, null=True)
     category = models.CharField(max_length=100, blank=True)
+    # Ubicación física en la biblioteca (estante, sala, piso…), para que el usuario
+    # sepa dónde encontrarlo cuando vaya a recogerlo.
+    location = models.CharField(max_length=100, blank=True)
     description = models.CharField(max_length=500, blank=True)
     image = models.ImageField(upload_to='catalog/images/', blank=True, null=True)
 

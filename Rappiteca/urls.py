@@ -28,6 +28,7 @@ urlpatterns = [
     path('login/', accounts_views.login_view, name='login'),
     path('logout/', accounts_views.logout_view, name='logout'),
 
+    path('libro/<int:book_id>/', views.detalle_libro, name='detalle_libro'),
     path('reservar/<int:book_id>/', views.reservar_libro, name='reservar_libro'),
     path('cancelar-reserva/<int:prestamo_id>/', views.cancelar_reserva, name='cancelar_reserva'),
     path('confirmar-recogida/<int:prestamo_id>/', views.confirmar_recogida, name='confirmar_recogida'),

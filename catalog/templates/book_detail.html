@@ -1,0 +1,123 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rappiteca · {{ book.title }}</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="{% static 'catalog/css/style.css' %}">
+</head>
+<body>
+
+  <header class="nav">
+    <a href="{% url 'home' %}" class="nav-brand">Rappiteca</a>
+
+    <div class="nav-center">
+      {% if current_user %}
+        <span class="nav-welcome">Welcome, {{ current_user.name }}</span>
+      {% endif %}
+    </div>
+
+    <nav class="nav-actions">
+      {% if current_user %}
+        {% if current_user.role == 'adm' %}
+          <a href="{% url 'gestionar_prestamos' %}" class="btn btn-ghost">Admin panel</a>
+        {% endif %}
+        <a href="{% url 'logout' %}" class="btn btn-solid">Log out</a>
+      {% else %}
+        <a href="{% url 'signup' %}" class="btn btn-ghost">Sign up</a>
+        <a href="{% url 'login' %}" class="btn btn-solid">Log in</a>
+      {% endif %}
+    </nav>
+  </header>
+
+  <main class="detail-main">
+    <a href="{% url 'home' %}" class="detail-back">← Back to catalog</a>
+
+    {% if messages %}
+      {% for message in messages %}
+        <p class="form-message form-message-{{ message.tags }}">{{ message }}</p>
+      {% endfor %}
+    {% endif %}
+
+    <div class="detail-card">
+      <div class="detail-cover">
+        {% if book.image %}
+          <img src="{{ book.image.url }}" alt="{{ book.title }}">
+        {% else %}
+          <span class="detail-cover-placeholder">No cover</span>
+        {% endif %}
+      </div>
+
+      <div class="detail-body">
+        <p class="eyebrow">{{ book.category|default:"Catalog" }}</p>
+        <h1 class="detail-title">{{ book.title }}</h1>
+        <p class="detail-author">{{ book.author }}</p>
+
+        <div class="detail-status">
+          {% if estado_publico == 'available' %}
+            <span class="status-badge status-available">{{ estado_publico_label }}</span>
+          {% elif estado_publico == 'borrowed' %}
+            <span class="status-badge status-unavailable">{{ estado_publico_label }}</span>
+          {% else %}
+            <span class="status-badge status-info">{{ estado_publico_label }}</span>
+          {% endif %}
+        </div>
+
+        <dl class="detail-facts">
+          <div class="detail-fact">
+            <dt>Copies available</dt>
+            <dd>{{ book.available_copies }} of {{ book.total_copies }}</dd>
+          </div>
+          <div class="detail-fact">
+            <dt>Location</dt>
+            <dd>{{ book.location|default:"Not specified" }}</dd>
+          </div>
+          {% if book.isbn %}
+            <div class="detail-fact">
+              <dt>ISBN</dt>
+              <dd>{{ book.isbn }}</dd>
+            </div>
+          {% endif %}
+        </dl>
+
+        <div class="detail-description">
+          <h2 class="detail-section-title">Description</h2>
+          <p>{{ book.description|default:"No description available for this book." }}</p>
+        </div>
+
+        <div class="detail-actions">
+          {% if prestamo_activo.estado == 'reservado' %}
+            <span class="status-badge status-info">Reserved — pending pickup</span>
+            <form action="{% url 'confirmar_recogida' prestamo_activo.id %}" method="post">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-solid btn-small">Ya lo recogí</button>
+            </form>
+            <form action="{% url 'cancelar_reserva' prestamo_activo.id %}" method="post">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-ghost btn-small">Cancel reservation</button>
+            </form>
+          {% elif prestamo_activo.estado == 'prestado' %}
+            <span class="status-badge status-unavailable">Recogido — en tu poder</span>
+          {% elif estado_publico == 'available' %}
+            {% if current_user %}
+              <form action="{% url 'reservar_libro' book.id %}" method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-solid">Reserve</button>
+              </form>
+            {% else %}
+              <a href="{% url 'login' %}" class="btn btn-ghost">Log in to reserve</a>
+            {% endif %}
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </main>
+
+</body>
+</html>

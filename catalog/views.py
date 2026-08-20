@@ -60,6 +60,32 @@ def home(request):
     return render(request, 'home.html', contexto)
  
  
+# ---------- Detalle público de un libro ----------
+
+def detalle_libro(request, book_id):
+    current_user = _usuario_actual(request)
+    book = get_object_or_404(Book, id=book_id)
+
+    estado_publico = book.estado_publico()
+
+    prestamo_activo = None
+    if current_user:
+        prestamo_activo = Prestamo.objects.filter(
+            user=current_user,
+            book=book,
+            estado__in=[Prestamo.ESTADO_RESERVADO, Prestamo.ESTADO_PRESTADO],
+        ).first()
+
+    contexto = {
+        'current_user': current_user,
+        'book': book,
+        'estado_publico': estado_publico,
+        'estado_publico_label': book.ESTADO_PUBLICO_LABELS[estado_publico],
+        'prestamo_activo': prestamo_activo,
+    }
+    return render(request, 'book_detail.html', contexto)
+
+
 # ---------- Acción del usuario: reservar ----------
  
 def reservar_libro(request, book_id):

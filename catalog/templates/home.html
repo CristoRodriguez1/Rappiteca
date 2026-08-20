@@ -71,16 +71,18 @@
       <div class="results-list">
         {% for item in resultados %}
           <div class="result-card">
-            <div class="result-cover">
+            <a href="{% url 'detalle_libro' item.book.id %}" class="result-cover">
               {% if item.book.image %}
                 <img src="{{ item.book.image.url }}" alt="{{ item.book.title }}">
               {% else %}
                 <span class="result-cover-placeholder">No cover</span>
               {% endif %}
-            </div>
+            </a>
 
             <div class="result-info">
-              <h3 class="result-title">{{ item.book.title }}</h3>
+              <h3 class="result-title">
+                <a href="{% url 'detalle_libro' item.book.id %}" class="result-title-link">{{ item.book.title }}</a>
+              </h3>
               <p class="result-meta">{{ item.book.author }}{% if item.book.category %} · {{ item.book.category }}{% endif %}</p>
             </div>
 
