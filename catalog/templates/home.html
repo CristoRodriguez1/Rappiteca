@@ -102,8 +102,8 @@
               {% elif item.prestamo_activo.estado == 'prestado' %}
                 <span class="status-badge status-unavailable">Recogido — en tu poder</span>
                 <p class="result-note">Ya no puedes cancelar esta reserva.</p>
-              {% elif item.estado == 'Disponible' %}
-                <span class="status-badge status-available">Available</span>
+              {% elif item.estado_publico == 'available' %}
+                <span class="status-badge status-available">{{ item.estado_publico_label }}</span>
                 {% if current_user %}
                   <form action="{% url 'reservar_libro' item.book.id %}" method="post">
                     {% csrf_token %}
@@ -113,8 +113,10 @@
                 {% else %}
                   <a href="{% url 'login' %}" class="btn btn-ghost btn-small">Log in to reserve</a>
                 {% endif %}
+              {% elif item.estado_publico == 'borrowed' %}
+                <span class="status-badge status-unavailable">{{ item.estado_publico_label }}</span>
               {% else %}
-                <span class="status-badge status-unavailable">Checked out</span>
+                <span class="status-badge status-info">{{ item.estado_publico_label }}</span>
               {% endif %}
             </div>
           </div>
