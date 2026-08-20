@@ -33,9 +33,13 @@ def home(request):
  
     resultados = []
     for book in books:
+        # Se calcula una sola vez por libro: `estado_publico` consulta la DB.
+        estado_publico = book.estado_publico()
         info = {
             'book': book,
             'estado': book.estado_display(),
+            'estado_publico': estado_publico,
+            'estado_publico_label': book.ESTADO_PUBLICO_LABELS[estado_publico],
             'prestamo_activo': None,
         }
         if current_user:
