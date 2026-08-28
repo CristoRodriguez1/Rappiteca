@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import Book, Prestamo
+from .models import Book
+from loans.models import Loan
 
 
 @admin.register(Book)
@@ -9,7 +10,7 @@ class BookAdmin(admin.ModelAdmin):
     list_filter = ('category',)
 
 
-@admin.register(Prestamo)
-class PrestamoAdmin(admin.ModelAdmin):
+@admin.register(Loan)
+class LoanAdmin(admin.ModelAdmin):
     list_display = ('book', 'user', 'estado', 'fecha_reserva', 'fecha_recogida', 'fecha_devolucion')
     list_filter = ('estado',)

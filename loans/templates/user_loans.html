@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Rappiteca · Admin · Loans</title>
+  <title>Rappiteca · My Loans</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,23 +16,32 @@
 
   <header class="nav">
     <a href="{% url 'home' %}" class="nav-brand">Rappiteca</a>
+
     <div class="nav-center">
-      <span class="nav-welcome">Admin panel</span>
+      {% if current_user %}
+        <span class="nav-welcome">Welcome, {{ current_user.name }}</span>
+      {% endif %}
     </div>
+
     <nav class="nav-actions">
-      <a href="{% url 'logout' %}" class="btn btn-solid">Log out</a>
+      {% if current_user %}
+        {% if current_user.role == 'adm' %}
+          <a href="{% url 'gestionar_prestamos' %}" class="btn btn-ghost">Admin panel</a>
+        {% else %}
+          <a href="{% url 'home' %}" class="btn btn-ghost">Catalog</a>
+        {% endif %}
+        <a href="{% url 'logout' %}" class="btn btn-solid">Log out</a>
+      {% else %}
+        <a href="{% url 'signup' %}" class="btn btn-ghost">Sign up</a>
+        <a href="{% url 'login' %}" class="btn btn-solid">Log in</a>
+      {% endif %}
     </nav>
   </header>
 
   <main class="admin-main">
-    <p class="eyebrow">Admin panel</p>
-    <h1 class="title">Loans</h1>
+    <p class="eyebrow">My account</p>
+    <h1 class="title">My Loans</h1>
     <hr class="rule">
-
-    <nav class="admin-tabs">
-      <a href="{% url 'gestionar_prestamos' %}" class="admin-tab admin-tab-active">Loans</a>
-      <a href="{% url 'ver_inventario' %}" class="admin-tab">Inventory</a>
-    </nav>
 
     {% if messages %}
       {% for message in messages %}
@@ -46,38 +55,47 @@
           <thead>
             <tr>
               <th>Book</th>
-              <th>User</th>
               <th>Status</th>
               <th>Reserved on</th>
               <th>Picked up on</th>
+              <th>Due date</th>
               <th></th>
             </tr>
           </thead>
           <tbody>
             {% for loan in loans %}
               <tr>
-                <td>{{ loan.book.title }}</td>
-                <td>{{ loan.user.name }} {{ loan.user.last_name }}<br><span class="cell-sub">{{ loan.user.email }}</span></td>
+                <td>
+                  <a href="{% url 'detalle_libro' loan.book.id %}" class="table-link">{{ loan.book.title }}</a>
+                  <br><span class="cell-sub">{{ loan.book.author }}</span>
+                </td>
                 <td>
                   {% if loan.estado == 'reservado' %}
                     <span class="status-badge status-info">Reserved</span>
-                  {% else %}
+                  {% elif loan.estado == 'prestado' %}
                     <span class="status-badge status-unavailable">Checked out</span>
                   {% endif %}
                 </td>
                 <td>{{ loan.fecha_reserva|date:"M d, Y H:i" }}</td>
                 <td>{{ loan.fecha_recogida|date:"M d, Y H:i"|default:"—" }}</td>
+                <td>
+                  {% if loan.due_date %}
+                    {{ loan.due_date|date:"M d, Y" }}
+                  {% else %}
+                    —
+                  {% endif %}
+                </td>
                 <td class="admin-table-actions">
                   {% if loan.estado == 'reservado' %}
-                    <form action="{% url 'marcar_recogido' loan.id %}" method="post">
+                    <form action="{% url 'confirmar_recogida' loan.id %}" method="post">
                       {% csrf_token %}
                       <button type="submit" class="btn btn-ghost btn-small">Mark picked up</button>
                     </form>
+                    <form action="{% url 'cancelar_reserva' loan.id %}" method="post">
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-ghost btn-small">Cancel</button>
+                    </form>
                   {% endif %}
-                  <form action="{% url 'marcar_devuelto' loan.id %}" method="post">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-solid btn-small">Mark returned</button>
-                  </form>
                 </td>
               </tr>
             {% endfor %}
@@ -85,7 +103,8 @@
         </table>
       </div>
     {% else %}
-      <p class="empty-state">No active loans or reservations right now.</p>
+      <p class="empty-state">You don't have any active loans or reservations.</p>
+      <a href="{% url 'home' %}" class="btn btn-solid">Browse catalog</a>
     {% endif %}
   </main>
 

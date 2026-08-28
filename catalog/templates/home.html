@@ -27,6 +27,8 @@
       {% if current_user %}
         {% if current_user.role == 'adm' %}
           <a href="{% url 'gestionar_prestamos' %}" class="btn btn-ghost">Admin panel</a>
+        {% else %}
+          <a href="{% url 'user_loans' %}" class="btn btn-ghost">My loans</a>
         {% endif %}
         <a href="{% url 'logout' %}" class="btn btn-solid">Log out</a>
       {% else %}
@@ -87,21 +89,21 @@
             </div>
 
             <div class="result-action">
-              {% if item.prestamo_activo.estado == 'reservado' %}
+              {% if item.loan_activo and item.loan_activo.estado == 'reservado' %}
                 <span class="status-badge status-info">Reserved — pending pickup</span>
                 <div class="result-action-stack">
-                  <form action="{% url 'confirmar_recogida' item.prestamo_activo.id %}" method="post">
+                  <form action="{% url 'confirmar_recogida' item.loan_activo.id %}" method="post">
                     {% csrf_token %}
                     <input type="hidden" name="q" value="{{ searchTerm|default:'' }}">
                     <button type="submit" class="btn btn-solid btn-small">Ya lo recogí</button>
                   </form>
-                  <form action="{% url 'cancelar_reserva' item.prestamo_activo.id %}" method="post">
+                  <form action="{% url 'cancelar_reserva' item.loan_activo.id %}" method="post">
                     {% csrf_token %}
                     <input type="hidden" name="q" value="{{ searchTerm|default:'' }}">
                     <button type="submit" class="btn btn-ghost btn-small">Cancel reservation</button>
                   </form>
                 </div>
-              {% elif item.prestamo_activo.estado == 'prestado' %}
+              {% elif item.loan_activo and item.loan_activo.estado == 'prestado' %}
                 <span class="status-badge status-unavailable">Recogido — en tu poder</span>
                 <p class="result-note">Ya no puedes cancelar esta reserva.</p>
               {% elif item.estado_publico == 'available' %}
