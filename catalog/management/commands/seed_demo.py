@@ -12,7 +12,8 @@ from django.contrib.auth.hashers import make_password
 from django.core.management.base import BaseCommand
 
 from accounts.models import User
-from catalog.models import Book, Prestamo
+from catalog.models import Book
+from loans.models import Loan
 
 # Usuario al que se le asignan las reservas/préstamos de ejemplo. Solo se crea
 # si no hay ningún estudiante en la base de datos.
@@ -63,9 +64,9 @@ class Command(BaseCommand):
             # `available_copies` a mano, para que los datos queden consistentes
             # con la lógica real de préstamos.
             if escenario == 'reservado':
-                Prestamo.reservar(lector, book)
+                Loan.reservar(lector, book)
             elif escenario == 'prestado':
-                Prestamo.reservar(lector, book).marcar_recogido()
+                Loan.reservar(lector, book).marcar_recogido()
 
             book.refresh_from_db()
             creados += 1

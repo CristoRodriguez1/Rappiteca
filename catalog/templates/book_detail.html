@@ -27,6 +27,8 @@
       {% if current_user %}
         {% if current_user.role == 'adm' %}
           <a href="{% url 'gestionar_prestamos' %}" class="btn btn-ghost">Admin panel</a>
+        {% else %}
+          <a href="{% url 'user_loans' %}" class="btn btn-ghost">My loans</a>
         {% endif %}
         <a href="{% url 'logout' %}" class="btn btn-solid">Log out</a>
       {% else %}
@@ -92,17 +94,17 @@
         </div>
 
         <div class="detail-actions">
-          {% if prestamo_activo.estado == 'reservado' %}
+          {% if loan_activo and loan_activo.estado == 'reservado' %}
             <span class="status-badge status-info">Reserved — pending pickup</span>
-            <form action="{% url 'confirmar_recogida' prestamo_activo.id %}" method="post">
+            <form action="{% url 'confirmar_recogida' loan_activo.id %}" method="post">
               {% csrf_token %}
               <button type="submit" class="btn btn-solid btn-small">Ya lo recogí</button>
             </form>
-            <form action="{% url 'cancelar_reserva' prestamo_activo.id %}" method="post">
+            <form action="{% url 'cancelar_reserva' loan_activo.id %}" method="post">
               {% csrf_token %}
               <button type="submit" class="btn btn-ghost btn-small">Cancel reservation</button>
             </form>
-          {% elif prestamo_activo.estado == 'prestado' %}
+          {% elif loan_activo and loan_activo.estado == 'prestado' %}
             <span class="status-badge status-unavailable">Recogido — en tu poder</span>
           {% elif estado_publico == 'available' %}
             {% if current_user %}
