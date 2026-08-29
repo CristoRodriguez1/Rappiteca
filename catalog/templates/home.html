@@ -25,6 +25,12 @@
 
     <nav class="nav-actions">
       {% if current_user %}
+        <div class="notification-icon-container">
+          <a href="{% url 'notifications' %}" class="notification-icon">
+            🔔
+            <span class="notification-badge" id="notification-badge" style="display: none;">0</span>
+          </a>
+        </div>
         {% if current_user.role == 'adm' %}
           <a href="{% url 'gestionar_prestamos' %}" class="btn btn-ghost">Admin panel</a>
         {% else %}
@@ -128,6 +134,26 @@
       </div>
     {% endif %}
   </main>
+
+  <input type="hidden" id="is-authenticated" value="{% if current_user %}true{% else %}false{% endif %}">
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Load notification count on page load
+      const isAuthenticated = document.getElementById('is-authenticated').value === 'true';
+      if (isAuthenticated) {
+        fetch('/accounts/notifications/count/')
+          .then(response => response.json())
+          .then(data => {
+            const badge = document.getElementById('notification-badge');
+            if (badge && data.count > 0) {
+              badge.textContent = data.count;
+              badge.style.display = 'inline';
+            }
+          });
+      }
+    });
+  </script>
 
 </body>
 </html>
