@@ -1,0 +1,220 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rappiteca · Notifications</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="{% static 'catalog/css/style.css' %}">
+</head>
+<body>
+
+  <header class="nav">
+    <a href="{% url 'home' %}" class="nav-brand">Rappiteca</a>
+
+    <div class="nav-center">
+      {% if current_user %}
+        <span class="nav-welcome">Welcome, {{ current_user.name }}</span>
+      {% endif %}
+    </div>
+
+    <nav class="nav-actions">
+      {% if current_user %}
+        <div class="notification-icon-container">
+          <a href="{% url 'notifications' %}" class="notification-icon">
+            🔔
+            <span class="notification-badge" id="notification-badge" style="display: none;">0</span>
+          </a>
+        </div>
+        {% if current_user.role == 'adm' %}
+          <a href="/admin-prestamos/" class="btn btn-ghost">Admin panel</a>
+        {% else %}
+          <a href="{% url 'user_loans' %}" class="btn btn-ghost">My loans</a>
+        {% endif %}
+        <a href="{% url 'logout' %}" class="btn btn-solid">Log out</a>
+      {% else %}
+        <a href="{% url 'signup' %}" class="btn btn-ghost">Sign up</a>
+        <a href="{% url 'login' %}" class="btn btn-solid">Log in</a>
+      {% endif %}
+    </nav>
+  </header>
+
+  <main class="admin-main">
+    <p class="eyebrow">My account</p>
+    <h1 class="title">Notifications</h1>
+    <hr class="rule">
+    <input type="hidden" id="csrf-token" value="{{ csrf_token }}">
+    <input type="hidden" id="is-authenticated" value="{% if current_user %}true{% else %}false{% endif %}">
+
+    <div class="admin-toolbar">
+      <button id="mark-all-read" class="btn btn-ghost btn-small">Mark all as read</button>
+    </div>
+
+    {% if notifications %}
+      <div class="notifications-list">
+        {% for notification in notifications %}
+          <div class="notification-card {% if not notification.is_read %}notification-unread{% endif %}" data-notification-id="{{ notification.id }}">
+            <div class="notification-header">
+              <span class="notification-title">{{ notification.title }}</span>
+              <span class="notification-date">{{ notification.created_at|date:"M d, Y H:i" }}</span>
+            </div>
+            <p class="notification-message">{{ notification.message }}</p>
+            {% if not notification.is_read %}
+              <button class="mark-read-btn btn btn-ghost btn-small">Mark as read</button>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="empty-state">No notifications yet.</p>
+      <a href="{% url 'home' %}" class="btn btn-solid">Browse catalog</a>
+    {% endif %}
+  </main>
+
+  <style>
+    .notifications-list {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .notification-card {
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 12px;
+      transition: all 0.2s;
+    }
+
+    .notification-unread {
+      background: #f0f9ff;
+      border-left: 4px solid #3b82f6;
+    }
+
+    .notification-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .notification-title {
+      font-weight: 600;
+      color: #1f2937;
+    }
+
+    .notification-date {
+      font-size: 0.875rem;
+      color: #6b7280;
+    }
+
+    .notification-message {
+      color: #4b5563;
+      line-height: 1.5;
+      margin-bottom: 12px;
+    }
+
+    .mark-read-btn {
+      font-size: 0.875rem;
+    }
+  </style>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Load notification count on page load
+      const isAuthenticated = document.getElementById('is-authenticated').value === 'true';
+      if (isAuthenticated) {
+        fetch('/accounts/notifications/count/')
+          .then(response => response.json())
+          .then(data => {
+            const badge = document.getElementById('notification-badge');
+            if (badge && data.count > 0) {
+              badge.textContent = data.count;
+              badge.style.display = 'inline';
+            }
+          });
+      }
+
+      // Mark individual notification as read
+      document.querySelectorAll('.mark-read-btn').forEach(button => {
+        button.addEventListener('click', function() {
+          const card = this.closest('.notification-card');
+          const notificationId = card.dataset.notificationId;
+          
+          fetch(`/accounts/notifications/${notificationId}/mark-read/`, {
+            method: 'POST',
+            headers: {
+              'X-CSRFToken': document.getElementById('csrf-token').value,
+            },
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              card.classList.remove('notification-unread');
+              this.remove();
+              updateNotificationCount();
+            }
+          });
+        });
+      });
+
+      // Mark all notifications as read
+      document.getElementById('mark-all-read').addEventListener('click', function() {
+        fetch('/accounts/notifications/mark-all-read/', {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': document.getElementById('csrf-token').value,
+          },
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            document.querySelectorAll('.notification-unread').forEach(card => {
+              card.classList.remove('notification-unread');
+              const btn = card.querySelector('.mark-read-btn');
+              if (btn) btn.remove();
+            });
+            updateNotificationCount();
+          }
+        });
+      });
+
+      function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+          const cookies = document.cookie.split(';');
+          for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+              cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+              break;
+            }
+          }
+        }
+        return cookieValue;
+      }
+
+      function updateNotificationCount() {
+        fetch('/accounts/notifications/count/')
+          .then(response => response.json())
+          .then(data => {
+            const badge = document.querySelector('.notification-badge');
+            if (badge) {
+              badge.textContent = data.count;
+              if (data.count === 0) {
+                badge.style.display = 'none';
+              } else {
+                badge.style.display = 'inline';
+              }
+            }
+          });
+      }
+    });
+  </script>
+</body>
+</html>

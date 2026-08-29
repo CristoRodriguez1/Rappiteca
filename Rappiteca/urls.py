@@ -40,6 +40,7 @@ urlpatterns = [
     path('admin-inventario/agregar/', views.agregar_libro, name='agregar_libro'),
     
     path('loans/', include('loans.urls')),
+    path('accounts/', include('accounts.urls')),
 ]
 
 if settings.DEBUG:

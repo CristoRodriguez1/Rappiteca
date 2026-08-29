@@ -703,3 +703,45 @@ header.nav {
   }
   .detail-main { padding-left: 20px; padding-right: 20px; }
 }
+
+/* ---------- Notification icon ---------- */
+.notification-icon-container {
+  position: relative;
+  display: inline-block;
+  margin-right: 8px;
+}
+
+.notification-icon {
+  font-size: 1.5rem;
+  text-decoration: none;
+  position: relative;
+  line-height: 1;
+}
+
+.notification-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #ef4444;
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: bold;
+  line-height: 1;
+}
+
+.table-link {
+  color: var(--ink);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.table-link:hover {
+  color: var(--brass-deep);
+  text-decoration: underline;
+}
