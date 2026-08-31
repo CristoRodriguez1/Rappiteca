@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'accounts',
     'catalog',
+    'loans',
 ]
 
 MIDDLEWARE = [
@@ -121,3 +122,13 @@ STATIC_URL = 'static/'
 # Media files (user-uploaded content, like book covers)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# Email configuration
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # For development - prints to console
+# For production, use: 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'  # Example SMTP server
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'your-email@gmail.com'  # Configure with real email
+EMAIL_HOST_PASSWORD = 'your-app-password'  # Configure with real password
+DEFAULT_FROM_EMAIL = 'noreply@rappiteca.edu'

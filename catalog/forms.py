@@ -11,6 +11,7 @@ class BookForm(forms.ModelForm):
             'author',
             'isbn',
             'category',
+            'location',
             'description',
             'image',
             'total_copies',
@@ -20,6 +21,7 @@ class BookForm(forms.ModelForm):
             'author': forms.TextInput(attrs={'placeholder': 'Gabriel García Márquez'}),
             'isbn': forms.TextInput(attrs={'placeholder': '978-3-16-148410-0'}),
             'category': forms.TextInput(attrs={'placeholder': 'Novela'}),
+            'location': forms.TextInput(attrs={'placeholder': 'Estante B3 — Sala 2'}),
             'description': forms.Textarea(attrs={
                 'placeholder': 'Breve reseña del libro…',
                 'rows': 3,
@@ -31,6 +33,7 @@ class BookForm(forms.ModelForm):
             'author': 'Autor',
             'isbn': 'ISBN',
             'category': 'Categoría',
+            'location': 'Ubicación',
             'description': 'Descripción',
             'image': 'Portada',
             'total_copies': 'Copias totales',

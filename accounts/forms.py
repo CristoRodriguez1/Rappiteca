@@ -1,4 +1,5 @@
 from django import forms
+from django.contrib.auth.hashers import check_password, make_password
 
 from .models import User
 
@@ -32,7 +33,7 @@ class SignupForm(forms.ModelForm):
 
     def save(self, commit=True):
         user = super().save(commit=False)
-        user.password = self.cleaned_data['password']  # stored as plain text — MVP only
+        user.password = make_password(self.cleaned_data['password'])  # hashed, not plain text
         user.role = 'stu'  # default role — role is never taken from the form
         if commit:
             user.save()
@@ -60,7 +61,7 @@ class LoginForm(forms.Form):
 
             # Same error for "no user" and "wrong password" on purpose —
             # doesn't reveal which part was wrong.
-            if user is None or user.password != password:
+            if user is None or not check_password(password, user.password):
                 raise forms.ValidationError('Invalid email or password.')
 
             self.user = user  # stash the matched user so the view can log them in

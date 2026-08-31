@@ -543,3 +543,205 @@ header.nav {
   background: #F0E2DD;
   color: #7A3524;
 }
+
+/* ---------- Enlace al detalle desde el catálogo ---------- */
+.result-title-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.result-title-link:hover {
+  color: var(--brass-deep);
+  text-decoration: underline;
+}
+
+.result-cover:focus-visible,
+.result-title-link:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: 2px;
+}
+
+/* ---------- Detalle del libro ---------- */
+.detail-main {
+  max-width: 860px;
+  text-align: left;
+}
+
+.detail-back {
+  display: inline-block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  text-decoration: none;
+  margin-bottom: 24px;
+}
+
+.detail-back:hover {
+  color: var(--brass-deep);
+}
+
+.detail-card {
+  display: flex;
+  gap: 36px;
+  align-items: flex-start;
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 32px;
+}
+
+.detail-cover {
+  width: 180px;
+  height: 260px;
+  flex-shrink: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--paper);
+}
+
+.detail-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.detail-cover-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+}
+
+.detail-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.detail-title {
+  font-family: 'Fraunces', serif;
+  font-size: 2rem;
+  font-weight: 600;
+  line-height: 1.15;
+  margin: 0 0 6px;
+}
+
+.detail-author {
+  font-size: 1rem;
+  color: var(--ink-soft);
+  margin: 0 0 16px;
+}
+
+.detail-status {
+  margin-bottom: 24px;
+}
+
+.detail-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  margin: 0 0 24px;
+  padding: 18px 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.detail-fact dt {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-bottom: 4px;
+}
+
+.detail-fact dd {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.detail-section-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  font-weight: 400;
+  margin: 0 0 8px;
+}
+
+.detail-description p {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.65;
+  color: var(--ink);
+}
+
+.detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 28px;
+}
+
+@media (max-width: 680px) {
+  .detail-card {
+    flex-direction: column;
+    padding: 22px;
+  }
+  .detail-cover {
+    width: 140px;
+    height: 200px;
+  }
+  .detail-main { padding-left: 20px; padding-right: 20px; }
+}
+
+/* ---------- Notification icon ---------- */
+.notification-icon-container {
+  position: relative;
+  display: inline-block;
+  margin-right: 8px;
+}
+
+.notification-icon {
+  font-size: 1.5rem;
+  text-decoration: none;
+  position: relative;
+  line-height: 1;
+}
+
+.notification-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #ef4444;
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: bold;
+  line-height: 1;
+}
+
+.table-link {
+  color: var(--ink);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.table-link:hover {
+  color: var(--brass-deep);
+  text-decoration: underline;
+}

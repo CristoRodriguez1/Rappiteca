@@ -17,7 +17,7 @@ Including another URLconf
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 from catalog import views
 from accounts import views as accounts_views
 
@@ -28,15 +28,19 @@ urlpatterns = [
     path('login/', accounts_views.login_view, name='login'),
     path('logout/', accounts_views.logout_view, name='logout'),
 
+    path('libro/<int:book_id>/', views.detalle_libro, name='detalle_libro'),
     path('reservar/<int:book_id>/', views.reservar_libro, name='reservar_libro'),
-    path('cancelar-reserva/<int:prestamo_id>/', views.cancelar_reserva, name='cancelar_reserva'),
-    path('confirmar-recogida/<int:prestamo_id>/', views.confirmar_recogida, name='confirmar_recogida'),
-    path('admin-prestamos/', views.gestionar_prestamos, name='gestionar_prestamos'),
-    path('admin-prestamos/<int:prestamo_id>/recogido/', views.marcar_recogido, name='marcar_recogido'),
-    path('admin-prestamos/<int:prestamo_id>/devuelto/', views.marcar_devuelto, name='marcar_devuelto'),
+    path('cancelar-reserva/<int:loan_id>/', views.cancelar_reserva, name='cancelar_reserva'),
+    path('confirmar-recogida/<int:loan_id>/', views.confirmar_recogida, name='confirmar_recogida'),
+    path('admin-prestamos/', views.gestionar_loans, name='gestionar_prestamos'),
+    path('admin-prestamos/<int:loan_id>/recogido/', views.marcar_recogido, name='marcar_recogido'),
+    path('admin-prestamos/<int:loan_id>/devuelto/', views.marcar_devuelto, name='marcar_devuelto'),
     path('admin-inventario/', views.ver_inventario, name='ver_inventario'),
     path('admin-inventario/<int:book_id>/quitar/', views.eliminar_libro, name='eliminar_libro'),
     path('admin-inventario/agregar/', views.agregar_libro, name='agregar_libro'),
+    
+    path('loans/', include('loans.urls')),
+    path('accounts/', include('accounts.urls')),
 ]
 
 if settings.DEBUG:
