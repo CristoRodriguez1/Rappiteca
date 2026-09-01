@@ -77,14 +77,14 @@ def test_notification_runtime():
         test_loan = Loan.objects.create(
             user=test_user,
             book=test_book,
-            estado=Loan.ESTADO_PRESTADO,
-            fecha_reserva=target_pickup_date,
-            fecha_recogida=timezone.now().replace(hour=10, minute=0, second=0, microsecond=0) + timedelta(days=reminder_days - 14)
+            status=Loan.STATUS_BORROWED,
+            reservation_date=target_pickup_date,
+            pickup_date=timezone.now().replace(hour=10, minute=0, second=0, microsecond=0) + timedelta(days=reminder_days - 14)
         )
         
         due_date = test_loan.due_date
         print(f"   [OK] Loan created")
-        print(f"   [INFO] Pickup date: {test_loan.fecha_recogida.date()}")
+        print(f"   [INFO] Pickup date: {test_loan.pickup_date.date()}")
         print(f"   [INFO] Due date: {due_date}")
         print(f"   [INFO] Reminder will trigger on: {today + timedelta(days=reminder_days)}")
     except Exception as e:

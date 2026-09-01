@@ -60,16 +60,16 @@
                 <td>{{ loan.book.title }}</td>
                 <td>{{ loan.user.name }} {{ loan.user.last_name }}<br><span class="cell-sub">{{ loan.user.email }}</span></td>
                 <td>
-                  {% if loan.estado == 'reservado' %}
+                  {% if loan.status == 'reserved' or loan.status == 'reservado' %}
                     <span class="status-badge status-info">Reserved</span>
                   {% else %}
                     <span class="status-badge status-unavailable">Checked out</span>
                   {% endif %}
                 </td>
-                <td>{{ loan.fecha_reserva|date:"M d, Y H:i" }}</td>
-                <td>{{ loan.fecha_recogida|date:"M d, Y H:i"|default:"—" }}</td>
+                <td>{{ loan.reservation_date|date:"M d, Y H:i" }}</td>
+                <td>{{ loan.pickup_date|date:"M d, Y H:i"|default:"—" }}</td>
                 <td class="admin-table-actions">
-                  {% if loan.estado == 'reservado' %}
+                  {% if loan.status == 'reserved' or loan.status == 'reservado' %}
                     <form action="{% url 'marcar_recogido' loan.id %}" method="post">
                       {% csrf_token %}
                       <button type="submit" class="btn btn-ghost btn-small">Mark picked up</button>

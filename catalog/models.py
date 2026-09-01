@@ -55,7 +55,11 @@ class Book(models.Model):
 
         # Sin copias libres: si alguna está fuera de la biblioteca, pesa "prestado";
         # si todas están apartadas sin recoger, es "reservado".
-        hay_prestadas = self.prestamos.filter(estado=Loan.ESTADO_PRESTADO).exists()
+        hay_prestadas = (
+            self.loans.filter(status=Loan.STATUS_BORROWED).exists()
+            if hasattr(self, 'loans')
+            else self.prestamos.filter(status=Loan.STATUS_BORROWED).exists()
+        )
         return self.ESTADO_PRESTADO if hay_prestadas else self.ESTADO_RESERVADO
 
     def estado_publico_display(self):

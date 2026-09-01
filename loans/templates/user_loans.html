@@ -76,14 +76,14 @@
                   <br><span class="cell-sub">{{ loan.book.author }}</span>
                 </td>
                 <td>
-                  {% if loan.estado == 'reservado' %}
+                  {% if loan.status == 'reserved' or loan.status == 'reservado' %}
                     <span class="status-badge status-info">Reserved</span>
-                  {% elif loan.estado == 'prestado' %}
+                  {% elif loan.status == 'borrowed' or loan.status == 'prestado' %}
                     <span class="status-badge status-unavailable">Checked out</span>
                   {% endif %}
                 </td>
-                <td>{{ loan.fecha_reserva|date:"M d, Y H:i" }}</td>
-                <td>{{ loan.fecha_recogida|date:"M d, Y H:i"|default:"—" }}</td>
+                <td>{{ loan.reservation_date|date:"M d, Y H:i" }}</td>
+                <td>{{ loan.pickup_date|date:"M d, Y H:i"|default:"—" }}</td>
                 <td>
                   {% if loan.due_date %}
                     {{ loan.due_date|date:"M d, Y" }}
@@ -92,7 +92,7 @@
                   {% endif %}
                 </td>
                 <td class="admin-table-actions">
-                  {% if loan.estado == 'reservado' %}
+                  {% if loan.status == 'reserved' or loan.status == 'reservado' %}
                     <form action="{% url 'confirmar_recogida' loan.id %}" method="post">
                       {% csrf_token %}
                       <button type="submit" class="btn btn-ghost btn-small">Mark picked up</button>
@@ -101,8 +101,8 @@
                       {% csrf_token %}
                       <button type="submit" class="btn btn-ghost btn-small">Cancel</button>
                     </form>
-                  {% elif loan.estado == 'prestado' %}
-                    {% if loan.puede_renovar %}
+                  {% elif loan.status == 'borrowed' or loan.status == 'prestado' %}
+                    {% if loan.can_renew %}
                       <form action="{% url 'renovar_prestamo' loan.id %}" method="post">
                         {% csrf_token %}
                         <button type="submit" class="btn btn-ghost btn-small">Renew</button>

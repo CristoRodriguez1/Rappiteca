@@ -86,13 +86,13 @@ def test_notification_system():
         loan = Loan.objects.create(
             user=user,
             book=book,
-            estado=Loan.ESTADO_PRESTADO,
-            fecha_reserva=timezone.now() - timedelta(days=1),
-            fecha_recogida=timezone.now() - timedelta(days=1)
+            status=Loan.STATUS_BORROWED,
+            reservation_date=timezone.now() - timedelta(days=1),
+            pickup_date=timezone.now() - timedelta(days=1)
         )
         
         due_date = loan.due_date
-        print(f"   [OK] Loan created with pickup date: {loan.fecha_recogida.date()}")
+        print(f"   [OK] Loan created with pickup date: {loan.pickup_date.date()}")
         print(f"   [OK] Calculated due date: {due_date}")
         
         # Clean up test loan

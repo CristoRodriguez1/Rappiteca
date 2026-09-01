@@ -49,8 +49,8 @@ class Command(BaseCommand):
             target_pickup_date = due_date - timedelta(days=14)
             
             loans_due = Loan.objects.filter(
-                estado=Loan.ESTADO_PRESTADO,
-                fecha_recogida__date=target_pickup_date
+                status=Loan.STATUS_BORROWED,
+                pickup_date__date=target_pickup_date
             ).select_related('user', 'book')
             
             sent_count = 0
@@ -119,8 +119,8 @@ class Command(BaseCommand):
         
         # Check for overdue loans
         overdue_loans = Loan.objects.filter(
-            estado=Loan.ESTADO_PRESTADO,
-            fecha_recogida__date__lt=today - timedelta(days=14)
+            status=Loan.STATUS_BORROWED,
+            pickup_date__date__lt=today - timedelta(days=14)
         ).select_related('user', 'book')
         
         overdue_count = 0

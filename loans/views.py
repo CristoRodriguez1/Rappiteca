@@ -34,8 +34,8 @@ def user_loans(request):
     loans = Loan.objects.select_related('book').filter(
         user=current_user
     ).exclude(
-        estado__in=[Loan.ESTADO_DEVUELTO, Loan.ESTADO_CANCELADO]
-    ).order_by('-fecha_reserva')
+        status__in=[Loan.STATUS_RETURNED, Loan.STATUS_CANCELLED]
+    ).order_by('-reservation_date')
 
     contexto = {
         'current_user': current_user,
@@ -61,7 +61,7 @@ def devolver_libro(request, loan_id):
     loan = get_object_or_404(Loan, id=loan_id, user=current_user)
 
     try:
-        loan.marcar_devuelto()
+        loan.mark_returned()
         messages.success(request, f'Devolviste "{loan.book.title}". ¡Gracias!')
     except ValidationError as e:
         messages.error(request, e.message if hasattr(e, 'message') else str(e))
@@ -84,7 +84,7 @@ def renovar_prestamo(request, loan_id):
     loan = get_object_or_404(Loan, id=loan_id, user=current_user)
 
     try:
-        loan.renovar()
+        loan.renew()
         messages.success(request, f'Renovaste "{loan.book.title}". Nueva fecha de entrega: {loan.due_date:%d/%m/%Y}.')
     except ValidationError as e:
         messages.error(request, e.message if hasattr(e, 'message') else str(e))

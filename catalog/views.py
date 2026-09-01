@@ -53,7 +53,7 @@ def home(request):
             info['loan_activo'] = Loan.objects.filter(
                 user=current_user,
                 book=book,
-                estado__in=[Loan.ESTADO_RESERVADO, Loan.ESTADO_PRESTADO],
+                status__in=[Loan.STATUS_RESERVED, Loan.STATUS_BORROWED],
             ).first()
         resultados.append(info)
  
@@ -153,8 +153,8 @@ def gestionar_loans(request):
         return redirect('home')
 
     loans = Loan.objects.select_related('user', 'book').exclude(
-        estado__in=[Loan.ESTADO_DEVUELTO, Loan.ESTADO_CANCELADO]
-    ).order_by('-fecha_reserva')
+        status__in=[Loan.STATUS_RETURNED, Loan.STATUS_CANCELLED]
+    ).order_by('-reservation_date')
 
     return render(request, 'admin_prestamos.html', {'loans': loans})
 
@@ -184,7 +184,7 @@ def eliminar_libro(request, book_id):
 
     activos = Loan.objects.filter(
         book=book,
-        estado__in=[Loan.ESTADO_RESERVADO, Loan.ESTADO_PRESTADO],
+        status__in=[Loan.STATUS_RESERVED, Loan.STATUS_BORROWED],
     ).exists()
     if activos:
         messages.error(
@@ -229,7 +229,7 @@ def marcar_recogido(request, loan_id):
 
     loan = get_object_or_404(Loan, id=loan_id)
     try:
-        loan.marcar_recogido()
+        loan.mark_picked_up()
         messages.success(request, f'"{loan.book.title}" marcado como prestado.')
     except ValidationError as e:
         messages.error(request, str(e))
@@ -246,7 +246,7 @@ def marcar_devuelto(request, loan_id):
 
     loan = get_object_or_404(Loan, id=loan_id)
     try:
-        loan.marcar_devuelto()
+        loan.mark_returned()
         messages.success(request, f'"{loan.book.title}" marcado como devuelto.')
     except ValidationError as e:
         messages.error(request, str(e))
@@ -275,7 +275,7 @@ def confirmar_recogida(request, loan_id):
         return redirect('home')
 
     try:
-        loan.marcar_recogido()
+        loan.mark_picked_up()
         messages.success(
             request,
             f'Confirmaste la recogida de "{loan.book.title}". Ya no puedes cancelar.',

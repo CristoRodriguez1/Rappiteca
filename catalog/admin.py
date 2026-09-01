@@ -12,5 +12,5 @@ class BookAdmin(admin.ModelAdmin):
 
 @admin.register(Loan)
 class LoanAdmin(admin.ModelAdmin):
-    list_display = ('book', 'user', 'estado', 'fecha_reserva', 'fecha_recogida', 'fecha_devolucion')
-    list_filter = ('estado',)
+    list_display = ('book', 'user', 'status', 'reservation_date', 'pickup_date', 'return_date', 'renewals')
+    list_filter = ('status',)
