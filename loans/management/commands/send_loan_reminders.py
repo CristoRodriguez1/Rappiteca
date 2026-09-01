@@ -32,9 +32,9 @@ class Command(BaseCommand):
         
         # Define reminder periods: (days_before, notification_type, description)
         reminder_periods = [
-            (7, 'week_before', '1 semana antes'),
-            (3, 'three_days_before', '3 días antes'),
-            (0, 'same_day', 'el mismo día'),
+            (7, 'week_before', '1 week before'),
+            (3, 'three_days_before', '3 days before'),
+            (0, 'same_day', 'same day'),
         ]
         
         total_sent = 0
@@ -66,21 +66,21 @@ class Command(BaseCommand):
                 
                 if existing_notification:
                     skipped_count += 1
-                    self.stdout.write(f'  Ya se envió recordatorio ({description}): {loan.book.title} -> {loan.user.email}')
+                    self.stdout.write(f'  Already sent reminder ({description}): {loan.book.title} -> {loan.user.email}')
                     continue
                 
                 # Create appropriate message based on timing
                 if days_before == 7:
-                    title = f'Recordatorio semanal: "{loan.book.title}"'
-                    message = f'Tu préstamo de "{loan.book.title}" vence en 1 semana ({due_date}). '
+                    title = f'Weekly reminder: "{loan.book.title}"'
+                    message = f'Your loan of "{loan.book.title}" is due in 1 week ({due_date}). '
                 elif days_before == 3:
-                    title = f'Recordatorio: "{loan.book.title}" vence pronto'
-                    message = f'Tu préstamo de "{loan.book.title}" vence en 3 días ({due_date}). '
+                    title = f'Reminder: "{loan.book.title}" due soon'
+                    message = f'Your loan of "{loan.book.title}" is due in 3 days ({due_date}). '
                 else:  # same day
-                    title = f'¡Vence hoy!: "{loan.book.title}"'
-                    message = f'Tu préstamo de "{loan.book.title}" vence hoy ({due_date}). '
+                    title = f'Due today: "{loan.book.title}"'
+                    message = f'Your loan of "{loan.book.title}" is due today ({due_date}). '
                 
-                message += f'Por favor devuélvelo antes de la fecha de vencimiento.'
+                message += f'Please return it before the due date.'
                 
                 # Create in-app notification
                 notification = Notification.objects.create(
@@ -94,11 +94,11 @@ class Command(BaseCommand):
                 # Send email reminder
                 try:
                     email_subject = title
-                    email_message = f'Hola {loan.user.name},\n\n'
+                    email_message = f'Hello {loan.user.name},\n\n'
                     email_message += message + '\n\n'
-                    email_message += 'Si ya devolviste el libro, puedes ignorar este mensaje.\n\n'
-                    email_message += 'Saludos,\n'
-                    email_message += 'Equipo de Rappiteca'
+                    email_message += 'If you have already returned the book, you can ignore this message.\n\n'
+                    email_message += 'Best regards,\n'
+                    email_message += 'Rappiteca Team'
                     
                     send_mail(
                         subject=email_subject,
@@ -108,9 +108,9 @@ class Command(BaseCommand):
                         fail_silently=False,
                     )
                     sent_count += 1
-                    self.stdout.write(self.style.SUCCESS(f'  [OK] Recordatorio ({description}): {loan.book.title} -> {loan.user.email}'))
+                    self.stdout.write(self.style.SUCCESS(f'  [OK] Reminder sent ({description}): {loan.book.title} -> {loan.user.email}'))
                 except Exception as e:
-                    self.stdout.write(self.style.ERROR(f'  [ERROR] Error enviando email a {loan.user.email}: {str(e)}'))
+                    self.stdout.write(self.style.ERROR(f'  [ERROR] Error sending email to {loan.user.email}: {str(e)}'))
                     # Still keep the in-app notification even if email fails
             
             period_results[description] = {'sent': sent_count, 'skipped': skipped_count}
@@ -139,31 +139,31 @@ class Command(BaseCommand):
             Notification.objects.create(
                 user=loan.user,
                 notification_type=Notification.TYPE_LOAN_OVERDUE,
-                title=f'¡Vencido!: "{loan.book.title}"',
-                message=f'Tu préstamo de "{loan.book.title}" está vencido. '
-                        f'Por favor devuélvelo lo antes posible para evitar multas.',
+                title=f'Overdue: "{loan.book.title}"',
+                message=f'Your loan of "{loan.book.title}" is overdue. '
+                        f'Please return it as soon as possible to avoid fines.',
                 related_loan_id=loan.id
             )
             
             overdue_count += 1
-            self.stdout.write(self.style.WARNING(f'  [WARN] Notificación de vencimiento: {loan.book.title} -> {loan.user.email}'))
+            self.stdout.write(self.style.WARNING(f'  [WARN] Overdue notification: {loan.book.title} -> {loan.user.email}'))
         
         # Print summary
         self.stdout.write('')
         self.stdout.write('=' * 60)
-        self.stdout.write('RESUMEN DE RECORDATORIOS')
+        self.stdout.write('REMINDER SUMMARY')
         self.stdout.write('=' * 60)
         
         for description, results in period_results.items():
             if results['sent'] > 0:
-                self.stdout.write(self.style.SUCCESS(f'{description}: {results["sent"]} enviados'))
+                self.stdout.write(self.style.SUCCESS(f'{description}: {results["sent"]} sent'))
             if results['skipped'] > 0:
-                self.stdout.write(f'{description}: {results["skipped"]} ya notificados')
+                self.stdout.write(f'{description}: {results["skipped"]} already notified')
         
         if overdue_count > 0:
-            self.stdout.write(self.style.WARNING(f'Vencidos: {overdue_count} notificaciones'))
+            self.stdout.write(self.style.WARNING(f'Overdue: {overdue_count} notifications'))
         
         if total_sent == 0 and total_skipped == 0 and overdue_count == 0:
-            self.stdout.write(self.style.SUCCESS('No hay préstamos que requieran recordatorios hoy.'))
+            self.stdout.write(self.style.SUCCESS('No loans require reminders today.'))
         else:
-            self.stdout.write(self.style.SUCCESS(f'Total recordatorios enviados: {total_sent}'))
+            self.stdout.write(self.style.SUCCESS(f'Total reminders sent: {total_sent}'))
