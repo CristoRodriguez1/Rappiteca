@@ -6,7 +6,7 @@ from django.views.decorators.http import require_POST
 from .forms import LoginForm, SignupForm
 from .models import Notification, User
 
-
+# FR-01 User registration
 def signup_view(request):
     if request.method == 'POST':
         form = SignupForm(request.POST)
@@ -19,7 +19,7 @@ def signup_view(request):
 
     return render(request, 'signupview.html', {'form': form})
 
-
+# FR-02 User login
 def login_view(request):
     if request.method == 'POST':
         form = LoginForm(request.POST)
@@ -36,7 +36,7 @@ def login_view(request):
 
     return render(request, 'loginview.html', {'form': form})
 
-
+# FR-15 Logout
 def logout_view(request):
     request.session.flush()
     messages.success(request, 'You have been logged out.')
@@ -57,6 +57,7 @@ def _usuario_actual(request):
     return current_user
 
 
+#region FR-14 Return reminder
 def notifications_view(request):
     current_user = _usuario_actual(request)
     if not current_user:
@@ -107,3 +108,4 @@ def notification_count(request):
     
     unread_count = Notification.objects.filter(user=current_user, is_read=False).count()
     return JsonResponse({'count': unread_count})
+#endregion

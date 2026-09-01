@@ -20,7 +20,7 @@ def _usuario_actual(request):
 
     return current_user
 
-
+# FR-13 User loan section
 def user_loans(request):
     current_user = _usuario_actual(request)
     if not current_user:
@@ -43,7 +43,7 @@ def user_loans(request):
     }
     return render(request, 'user_loans.html', contexto)
 
-
+# FR-11 Book return
 @require_POST
 def devolver_libro(request, loan_id):
     """
@@ -68,7 +68,7 @@ def devolver_libro(request, loan_id):
 
     return redirect('user_loans')
 
-
+# FR-12 Book renewal
 @require_POST
 def renovar_prestamo(request, loan_id):
     """
