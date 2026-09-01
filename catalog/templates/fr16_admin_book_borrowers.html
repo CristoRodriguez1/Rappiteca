@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Rappiteca · Admin · Inventory</title>
+  <title>Rappiteca · Admin · Book Borrowers</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -20,67 +20,51 @@
       <span class="nav-welcome">Admin panel</span>
     </div>
     <nav class="nav-actions">
-      <a href="{% url 'logout' %}" class="btn btn-solid">Log out</a>
+      <a href="{% url 'fr15_end_session' %}" class="btn btn-solid">Log out</a>
     </nav>
   </header>
 
   <main class="admin-main">
-    <p class="eyebrow">Admin panel</p>
-    <h1 class="title">Inventory</h1>
+    <p class="eyebrow">Admin panel · FR-16</p>
+    <h1 class="title">Book borrowers</h1>
+    <p class="cell-sub">Select a book to view the current borrower's information.</p>
     <hr class="rule">
 
     <nav class="admin-tabs">
       <a href="{% url 'gestionar_prestamos' %}" class="admin-tab">Loans</a>
-      <a href="{% url 'ver_inventario' %}" class="admin-tab admin-tab-active">Inventory</a>
-      <a href="{% url 'fr16_book_borrower_list' %}" class="admin-tab">Book borrowers</a>
+      <a href="{% url 'ver_inventario' %}" class="admin-tab">Inventory</a>
+      <a href="{% url 'fr16_book_borrower_list' %}" class="admin-tab admin-tab-active">Book borrowers</a>
     </nav>
 
-    <div class="admin-toolbar">
-      <a href="{% url 'agregar_libro' %}" class="btn btn-solid btn-small">Add book</a>
-    </div>
-
-    {% if messages %}
-      {% for message in messages %}
-        <p class="form-message form-message-{{ message.tags }}">{{ message }}</p>
-      {% endfor %}
-    {% endif %}
-
-    {% if libros %}
+    {% if books %}
       <div class="admin-table-wrap">
         <table class="admin-table">
           <thead>
             <tr>
               <th>Title</th>
               <th>Author</th>
-              <th>Category</th>
               <th>Available / Total</th>
               <th>Status</th>
               <th></th>
             </tr>
           </thead>
           <tbody>
-            {% for libro in libros %}
+            {% for book in books %}
               <tr>
-                <td>{{ libro.title }}</td>
-                <td>{{ libro.author }}</td>
-                <td>{{ libro.category|default:"—" }}</td>
-                <td>{{ libro.available_copies }} / {{ libro.total_copies }}</td>
+                <td>{{ book.title }}</td>
+                <td>{{ book.author }}</td>
+                <td>{{ book.available_copies }} / {{ book.total_copies }}</td>
                 <td>
-                  {% if libro.esta_disponible %}
+                  {% if book.esta_disponible %}
                     <span class="status-badge status-available">Available</span>
                   {% else %}
                     <span class="status-badge status-unavailable">Unavailable</span>
                   {% endif %}
                 </td>
                 <td class="admin-table-actions">
-                  <form
-                    action="{% url 'eliminar_libro' libro.id %}"
-                    method="post"
-                    onsubmit="return confirm('¿Quitar &quot;{{ libro.title|escapejs }}&quot; del inventario? Se borrará de la base de datos.');"
-                  >
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-ghost btn-small btn-danger">Quitar libro</button>
-                  </form>
+                  <a href="{% url 'fr16_book_borrower_detail' book.id %}" class="btn btn-ghost btn-small">
+                    View borrower
+                  </a>
                 </td>
               </tr>
             {% endfor %}

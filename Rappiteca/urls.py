@@ -20,6 +20,7 @@ from django.contrib import admin
 from django.urls import path, include
 from catalog import views
 from accounts import views as accounts_views
+from accounts import fr15_logout as fr15_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -38,8 +39,14 @@ urlpatterns = [
     path('admin-inventario/', views.ver_inventario, name='ver_inventario'),
     path('admin-inventario/<int:book_id>/quitar/', views.eliminar_libro, name='eliminar_libro'),
     path('admin-inventario/agregar/', views.agregar_libro, name='agregar_libro'),
-    
+
+    # FR-16 Display borrowers information
+    path('', include('catalog.fr16_urls')),
+
     path('loans/', include('loans.urls')),
+    # FR-15 Logout (specific paths before accounts.urls include)
+    path('accounts/end-session/', fr15_views.end_session_view, name='fr15_end_session'),
+    path('accounts/end-session/confirm/', fr15_views.confirm_end_session_view, name='fr15_confirm_end_session'),
     path('accounts/', include('accounts.urls')),
 ]
 

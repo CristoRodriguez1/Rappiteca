@@ -1,0 +1,95 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rappiteca · Admin · {{ book.title }} · Borrower</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="{% static 'catalog/css/style.css' %}">
+</head>
+<body>
+
+  <header class="nav">
+    <a href="{% url 'home' %}" class="nav-brand">Rappiteca</a>
+    <div class="nav-center">
+      <span class="nav-welcome">Admin panel</span>
+    </div>
+    <nav class="nav-actions">
+      <a href="{% url 'fr15_end_session' %}" class="btn btn-solid">Log out</a>
+    </nav>
+  </header>
+
+  <main class="admin-main">
+    <a href="{% url 'fr16_book_borrower_list' %}" class="detail-back">← Back to book selection</a>
+
+    <p class="eyebrow">Admin panel · FR-16</p>
+    <h1 class="title">{{ book.title }}</h1>
+    <p class="cell-sub">{{ book.author }}</p>
+    <hr class="rule">
+
+    <div class="detail-facts">
+      <div class="detail-fact">
+        <dt>Catalog status</dt>
+        <dd>
+          {% if estado_publico == 'available' %}
+            <span class="status-badge status-available">{{ estado_publico_label }}</span>
+          {% elif estado_publico == 'borrowed' %}
+            <span class="status-badge status-unavailable">{{ estado_publico_label }}</span>
+          {% else %}
+            <span class="status-badge status-info">{{ estado_publico_label }}</span>
+          {% endif %}
+        </dd>
+      </div>
+      <div class="detail-fact">
+        <dt>Copies available</dt>
+        <dd>{{ book.available_copies }} of {{ book.total_copies }}</dd>
+      </div>
+    </div>
+
+    <h2 class="detail-section-title">Current borrower information</h2>
+
+    {% if has_borrowers %}
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Borrower</th>
+              <th>Email</th>
+              <th>Loan status</th>
+              <th>Reserved on</th>
+              <th>Picked up on</th>
+              <th>Due date</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for entry in borrowers %}
+              <tr>
+                <td>{{ entry.full_name }}</td>
+                <td>{{ entry.email }}</td>
+                <td>
+                  {% if entry.status_label == 'Reserved' %}
+                    <span class="status-badge status-info">{{ entry.status_label }}</span>
+                  {% else %}
+                    <span class="status-badge status-unavailable">{{ entry.status_label }}</span>
+                  {% endif %}
+                </td>
+                <td>{{ entry.reserved_on|date:"M d, Y H:i" }}</td>
+                <td>{{ entry.picked_up_on|date:"M d, Y H:i"|default:"—" }}</td>
+                <td>{{ entry.due_date|date:"M d, Y"|default:"—" }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p class="empty-state">This book has no current borrower. All copies are available.</p>
+    {% endif %}
+  </main>
+
+</body>
+</html>

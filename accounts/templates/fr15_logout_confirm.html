@@ -1,0 +1,42 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rappiteca · Log out</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="{% static 'catalog/css/style.css' %}">
+</head>
+<body>
+
+  <header class="nav">
+    <a href="{% url 'home' %}" class="nav-brand">Rappiteca</a>
+    <div class="nav-center">
+      <span class="nav-welcome">End session</span>
+    </div>
+    <nav class="nav-actions">
+      <a href="{% url 'home' %}" class="btn btn-ghost">Cancel</a>
+    </nav>
+  </header>
+
+  <main class="admin-main">
+    <p class="eyebrow">FR-15 · Logout</p>
+    <h1 class="title">Log out</h1>
+    <hr class="rule">
+
+    <p>Are you sure you want to end your session?</p>
+
+    <form action="{% url 'fr15_confirm_end_session' %}" method="post" class="detail-actions">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-solid">Log out</button>
+      <a href="{% url 'home' %}" class="btn btn-ghost">Stay signed in</a>
+    </form>
+  </main>
+
+</body>
+</html>
