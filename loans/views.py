@@ -24,11 +24,11 @@ def _usuario_actual(request):
 def user_loans(request):
     current_user = _usuario_actual(request)
     if not current_user:
-        messages.error(request, 'Debes iniciar sesión para ver tus préstamos.')
+        messages.error(request, 'You must be logged in to view your loans.')
         return redirect('login')
     
     if current_user.role == 'adm':
-        messages.error(request, 'Los administradores no pueden tener préstamos.')
+        messages.error(request, 'Administrators cannot have loans.')
         return redirect('home')
 
     loans = Loan.objects.select_related('book').filter(
@@ -43,26 +43,29 @@ def user_loans(request):
     }
     return render(request, 'user_loans.html', contexto)
 
-# FR-11 Book return
+# FR-11 Book return (revisado: el usuario solicita, el admin confirma)
 @require_POST
-def devolver_libro(request, loan_id):
+def solicitar_devolucion(request, loan_id):
     """
-    Book Return.
-    IF a user selects an active loan and confirms the return THEN the system
-    SHALL register the return and update the book's availability status.
+    Book Return — user side.
+    The user requests the return; an admin confirms it via the admin
+    panel (marcar_devuelto), which is the only path that updates the
+    book's availability.
     """
     current_user = _usuario_actual(request)
     if not current_user:
-        messages.error(request, 'Debes iniciar sesión para devolver un libro.')
+        messages.error(request, 'You must be logged in to request a return.')
         return redirect('login')
 
-    # get_object_or_404 con user=current_user evita que alguien devuelva
-    # préstamos de otro usuario adivinando el id en la URL.
     loan = get_object_or_404(Loan, id=loan_id, user=current_user)
 
     try:
-        loan.mark_returned()
-        messages.success(request, f'Devolviste "{loan.book.title}". ¡Gracias!')
+        loan.request_return()
+        messages.success(
+            request,
+            f'You requested the return of "{loan.book.title}". '
+            f'An admin will confirm it when you drop off the book.',
+        )
     except ValidationError as e:
         messages.error(request, e.message if hasattr(e, 'message') else str(e))
 
@@ -78,14 +81,14 @@ def renovar_prestamo(request, loan_id):
     """
     current_user = _usuario_actual(request)
     if not current_user:
-        messages.error(request, 'Debes iniciar sesión para renovar un préstamo.')
+        messages.error(request, 'You must be logged in to renew a loan.')
         return redirect('login')
 
     loan = get_object_or_404(Loan, id=loan_id, user=current_user)
 
     try:
         loan.renew()
-        messages.success(request, f'Renovaste "{loan.book.title}". Nueva fecha de entrega: {loan.due_date:%d/%m/%Y}.')
+        messages.success(request, f'You renewed "{loan.book.title}". New due date: {loan.due_date:%d/%m/%Y}.')
     except ValidationError as e:
         messages.error(request, e.message if hasattr(e, 'message') else str(e))
 

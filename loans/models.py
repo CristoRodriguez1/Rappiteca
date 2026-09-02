@@ -35,6 +35,11 @@ class Loan(models.Model):
     MAX_RENEWALS = 2
     renewals = models.PositiveIntegerField(default=0)
 
+    # FR-11 (revisado): el usuario solicita la devolución, pero solo el admin
+    # la confirma vía mark_returned(). Esto evita que el usuario actualice
+    # la disponibilidad del libro sin que nadie de la biblioteca lo verifique.
+    return_requested = models.BooleanField(default=False)
+
     # Backwards compatibility properties
     @property
     def estado(self):
@@ -78,7 +83,7 @@ class Loan(models.Model):
     @classmethod
     def reserve(cls, user, book):
         if not book.esta_disponible:
-            raise ValidationError('No hay copias disponibles para reservar.')
+            raise ValidationError('No copies available to reserve.')
         book.available_copies -= 1
         book.save()
         return cls.objects.create(user=user, book=book, status=cls.STATUS_RESERVED)
@@ -89,7 +94,7 @@ class Loan(models.Model):
 
     def mark_picked_up(self):
         if self.status != self.STATUS_RESERVED:
-            raise ValidationError('Solo una reserva pendiente puede pasar a préstamo.')
+            raise ValidationError('Only a pending reservation can become a loan.')
         from django.utils import timezone
         self.status = self.STATUS_BORROWED
         self.pickup_date = timezone.now()
@@ -98,12 +103,27 @@ class Loan(models.Model):
     def marcar_recogido(self):
         return self.mark_picked_up()
 
+    def request_return(self):
+        """
+        FR-11 (revisado): el usuario indica que va a devolver el libro.
+        No toca available_copies — eso solo lo hace mark_returned(),
+        disparado por el admin cuando el libro llega físicamente.
+        """
+        if self.status != self.STATUS_BORROWED:
+            raise ValidationError('Only an active (checked-out) loan can have a return requested.')
+        if self.return_requested:
+            raise ValidationError('You already requested the return of this loan.')
+
+        self.return_requested = True
+        self.save()
+
     def mark_returned(self):
         if self.status != self.STATUS_BORROWED:
-            raise ValidationError('Solo un préstamo activo (prestado) puede marcarse como devuelto.')
+            raise ValidationError('Only an active (checked-out) loan can be marked as returned.')
         from django.utils import timezone
         self.status = self.STATUS_RETURNED
         self.return_date = timezone.now()
+        self.return_requested = False
         self.save()
 
         self.book.available_copies += 1
@@ -119,9 +139,9 @@ class Loan(models.Model):
         SHALL extend the loan's due date (up to MAX_RENEWALS times).
         """
         if self.status != self.STATUS_BORROWED:
-            raise ValidationError('Solo un préstamo activo (prestado) puede renovarse.')
+            raise ValidationError('Only an active (checked-out) loan can be renewed.')
         if self.renewals >= self.MAX_RENEWALS:
-            raise ValidationError(f'Ya alcanzaste el máximo de {self.MAX_RENEWALS} renovaciones para este préstamo.')
+            raise ValidationError(f'You have reached the maximum of {self.MAX_RENEWALS} renewals for this loan.')
 
         self.renewals += 1
         self.save()
@@ -131,7 +151,7 @@ class Loan(models.Model):
 
     def cancel_reservation(self):
         if self.status != self.STATUS_RESERVED:
-            raise ValidationError('Solo se puede cancelar una reserva pendiente.')
+            raise ValidationError('Only a pending reservation can be cancelled.')
         self.status = self.STATUS_CANCELLED
         self.save()
 

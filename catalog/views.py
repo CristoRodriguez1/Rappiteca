@@ -23,7 +23,7 @@ def _usuario_actual(request):
     return current_user
  
  
-# ---------- Home + búsqueda pública ----------
+# ---------- Home + public search ----------
  
 def home(request):
     current_user = _usuario_actual(request)
@@ -40,7 +40,7 @@ def home(request):
  
     resultados = []
     for book in books:
-        # Se calcula una sola vez por libro: `estado_publico` consulta la DB.
+        # Computed once per book: `estado_publico` hits the DB.
         estado_publico = book.estado_publico()
         info = {
             'book': book,
@@ -67,7 +67,7 @@ def home(request):
     return render(request, 'home.html', contexto)
  
  
-# ---------- Detalle público de un libro ----------
+# ---------- Public book detail ----------
 
 def detalle_libro(request, book_id):
     current_user = _usuario_actual(request)
@@ -77,10 +77,13 @@ def detalle_libro(request, book_id):
 
     loan_activo = None
     if current_user:
+        # FIX: `estado` es una @property de Python, no un campo real del
+        # modelo — filtrar por ella tira FieldError. Se usa `status`
+        # (el campo real) con los valores en inglés.
         loan_activo = Loan.objects.filter(
             user=current_user,
             book=book,
-            estado__in=[Loan.ESTADO_RESERVADO, Loan.ESTADO_PRESTADO],
+            status__in=[Loan.STATUS_RESERVED, Loan.STATUS_BORROWED],
         ).first()
 
     contexto = {
@@ -93,7 +96,7 @@ def detalle_libro(request, book_id):
     return render(request, 'book_detail.html', contexto)
 
 
-# ---------- Acción del usuario: reservar ----------
+# ---------- User action: reserve ----------
  
 def reservar_libro(request, book_id):
     if request.method != 'POST':
@@ -101,20 +104,20 @@ def reservar_libro(request, book_id):
  
     current_user = _usuario_actual(request)
     if not current_user:
-        messages.error(request, 'Debes iniciar sesión para reservar un libro.')
+        messages.error(request, 'You must be logged in to reserve a book.')
         return redirect('login')
  
     book = get_object_or_404(Book, id=book_id)
     try:
         Loan.reservar(current_user, book)
-        messages.success(request, f'Reservaste "{book.title}". Pásate por la biblioteca a recogerlo.')
+        messages.success(request, f'You reserved "{book.title}". Stop by the library to pick it up.')
     except ValidationError as e:
         messages.error(request, str(e))
  
     return redirect(f"/?q={request.POST.get('q', '')}")
  
  
-# ---------- Acción del usuario: cancelar una reserva propia ----------
+# ---------- User action: cancel your own reservation ----------
  
 def cancelar_reserva(request, loan_id):
     if request.method != 'POST':
@@ -122,26 +125,26 @@ def cancelar_reserva(request, loan_id):
  
     current_user = _usuario_actual(request)
     if not current_user:
-        messages.error(request, 'Debes iniciar sesión.')
+        messages.error(request, 'You must be logged in.')
         return redirect('login')
  
     loan = get_object_or_404(Loan, id=loan_id)
  
-    # Solo el dueño de la reserva puede cancelarla.
+    # Only the owner of the reservation can cancel it.
     if loan.user_id != current_user.id:
-        messages.error(request, 'No puedes cancelar esta reserva.')
+        messages.error(request, 'You cannot cancel this reservation.')
         return redirect('home')
  
     try:
         loan.cancelar_reserva()
-        messages.success(request, f'Cancelaste la reserva de "{loan.book.title}".')
+        messages.success(request, f'You cancelled the reservation for "{loan.book.title}".')
     except ValidationError as e:
         messages.error(request, str(e))
  
     return redirect(f"/?q={request.POST.get('q', '')}")
  
  
-# ---------- Panel de administrador ----------
+# ---------- Admin panel ----------
  
 def _es_admin(request):
     return request.session.get('user_role') == 'adm'
@@ -149,21 +152,21 @@ def _es_admin(request):
  
 def gestionar_loans(request):
     if not _es_admin(request):
-        messages.error(request, 'No tienes permisos para ver esta página.')
+        messages.error(request, 'You do not have permission to view this page.')
         return redirect('home')
 
     loans = Loan.objects.select_related('user', 'book').exclude(
         status__in=[Loan.STATUS_RETURNED, Loan.STATUS_CANCELLED]
-    ).order_by('-reservation_date')
+    ).order_by('-return_requested', '-reservation_date')
 
     return render(request, 'admin_prestamos.html', {'loans': loans})
 
 
-# ---------- Panel de administrador: inventario ----------
+# ---------- Admin panel: inventory ----------
 
 def ver_inventario(request):
     if not _es_admin(request):
-        messages.error(request, 'No tienes permisos para ver esta página.')
+        messages.error(request, 'You do not have permission to view this page.')
         return redirect('home')
 
     libros = Book.objects.all().order_by('title')
@@ -172,12 +175,12 @@ def ver_inventario(request):
 
 
 def eliminar_libro(request, book_id):
-    """Admin: quitar un libro del inventario (borrado real en la DB)."""
+    """Admin: remove a book from inventory (hard delete from the DB)."""
     if request.method != 'POST':
         return redirect('ver_inventario')
 
     if not _es_admin(request):
-        messages.error(request, 'No tienes permisos.')
+        messages.error(request, 'You do not have permission.')
         return redirect('home')
 
     book = get_object_or_404(Book, id=book_id)
@@ -189,28 +192,28 @@ def eliminar_libro(request, book_id):
     if activos:
         messages.error(
             request,
-            f'No se puede quitar "{book.title}": tiene reservas o préstamos activos.',
+            f'Cannot remove "{book.title}": it has active reservations or loans.',
         )
         return redirect('ver_inventario')
 
     titulo = book.title
     book.delete()
-    messages.success(request, f'Se quitó "{titulo}" del inventario.')
+    messages.success(request, f'Removed "{titulo}" from inventory.')
     return redirect('ver_inventario')
 
 
-# ---------- Panel de administrador: agregar libro al inventario ----------
+# ---------- Admin panel: add book to inventory ----------
 
 def agregar_libro(request):
     if not _es_admin(request):
-        messages.error(request, 'No tienes permisos para ver esta página.')
+        messages.error(request, 'You do not have permission to view this page.')
         return redirect('home')
 
     if request.method == 'POST':
         form = BookForm(request.POST, request.FILES)
         if form.is_valid():
             book = form.save()
-            messages.success(request, f'"{book.title}" se agregó al inventario.')
+            messages.success(request, f'"{book.title}" was added to inventory.')
             return redirect('ver_inventario')
     else:
         form = BookForm()
@@ -219,18 +222,18 @@ def agregar_libro(request):
 
 
 def marcar_recogido(request, loan_id):
-    """Admin marca que el usuario ya recogió el libro (reservado → prestado)."""
+    """Admin marks that the user has picked up the book (reserved -> checked out)."""
     if request.method != 'POST':
         return redirect('gestionar_prestamos')
 
     if not _es_admin(request):
-        messages.error(request, 'No tienes permisos.')
+        messages.error(request, 'You do not have permission.')
         return redirect('home')
 
     loan = get_object_or_404(Loan, id=loan_id)
     try:
         loan.mark_picked_up()
-        messages.success(request, f'"{loan.book.title}" marcado como prestado.')
+        messages.success(request, f'"{loan.book.title}" marked as checked out.')
     except ValidationError as e:
         messages.error(request, str(e))
     return redirect('gestionar_prestamos')
@@ -241,46 +244,13 @@ def marcar_devuelto(request, loan_id):
         return redirect('gestionar_prestamos')
 
     if not _es_admin(request):
-        messages.error(request, 'No tienes permisos.')
+        messages.error(request, 'You do not have permission.')
         return redirect('home')
 
     loan = get_object_or_404(Loan, id=loan_id)
     try:
         loan.mark_returned()
-        messages.success(request, f'"{loan.book.title}" marcado como devuelto.')
+        messages.success(request, f'"{loan.book.title}" marked as returned.')
     except ValidationError as e:
         messages.error(request, str(e))
     return redirect('gestionar_prestamos')
-
-
-# ---------- Acción del usuario: confirmar que ya recogió el libro ----------
-
-def confirmar_recogida(request, loan_id):
-    """
-    El propio usuario indica que ya recogió el libro.
-    Pasa de reservado → prestado y deja de poder cancelar.
-    """
-    if request.method != 'POST':
-        return redirect('home')
-
-    current_user = _usuario_actual(request)
-    if not current_user:
-        messages.error(request, 'Debes iniciar sesión.')
-        return redirect('login')
-
-    loan = get_object_or_404(Loan, id=loan_id)
-
-    if loan.user_id != current_user.id:
-        messages.error(request, 'No puedes confirmar la recogida de este préstamo.')
-        return redirect('home')
-
-    try:
-        loan.mark_picked_up()
-        messages.success(
-            request,
-            f'Confirmaste la recogida de "{loan.book.title}". Ya no puedes cancelar.',
-        )
-    except ValidationError as e:
-        messages.error(request, str(e))
-
-    return redirect(f"/?q={request.POST.get('q', '')}")

@@ -32,7 +32,6 @@
     <nav class="admin-tabs">
       <a href="{% url 'gestionar_prestamos' %}" class="admin-tab admin-tab-active">Loans</a>
       <a href="{% url 'ver_inventario' %}" class="admin-tab">Inventory</a>
-      <a href="{% url 'fr16_book_borrower_list' %}" class="admin-tab">Book borrowers</a>
     </nav>
 
     {% if messages %}
@@ -60,8 +59,10 @@
                 <td>{{ loan.book.title }}</td>
                 <td>{{ loan.user.name }} {{ loan.user.last_name }}<br><span class="cell-sub">{{ loan.user.email }}</span></td>
                 <td>
-                  {% if loan.status == 'reserved' or loan.status == 'reservado' %}
+                  {% if loan.status == 'reserved' %}
                     <span class="status-badge status-info">Reserved</span>
+                  {% elif loan.return_requested %}
+                    <span class="status-badge status-info">Return requested</span>
                   {% else %}
                     <span class="status-badge status-unavailable">Checked out</span>
                   {% endif %}
@@ -69,16 +70,17 @@
                 <td>{{ loan.reservation_date|date:"M d, Y H:i" }}</td>
                 <td>{{ loan.pickup_date|date:"M d, Y H:i"|default:"—" }}</td>
                 <td class="admin-table-actions">
-                  {% if loan.status == 'reserved' or loan.status == 'reservado' %}
+                  {% if loan.status == 'reserved' %}
                     <form action="{% url 'marcar_recogido' loan.id %}" method="post">
                       {% csrf_token %}
                       <button type="submit" class="btn btn-ghost btn-small">Mark picked up</button>
                     </form>
+                  {% else %}
+                    <form action="{% url 'marcar_devuelto' loan.id %}" method="post">
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-solid btn-small">Mark returned</button>
+                    </form>
                   {% endif %}
-                  <form action="{% url 'marcar_devuelto' loan.id %}" method="post">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-solid btn-small">Mark returned</button>
-                  </form>
                 </td>
               </tr>
             {% endfor %}

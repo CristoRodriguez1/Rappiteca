@@ -100,18 +100,14 @@
         </div>
 
         <div class="detail-actions">
-          {% if loan_activo and loan_activo.estado == 'reservado' %}
+          {% if loan_activo and loan_activo.status == 'reserved' %}
             <span class="status-badge status-info">Reserved — pending pickup</span>
-            <form action="{% url 'confirmar_recogida' loan_activo.id %}" method="post">
-              {% csrf_token %}
-              <button type="submit" class="btn btn-solid btn-small">Ya lo recogí</button>
-            </form>
             <form action="{% url 'cancelar_reserva' loan_activo.id %}" method="post">
               {% csrf_token %}
               <button type="submit" class="btn btn-ghost btn-small">Cancel reservation</button>
             </form>
-          {% elif loan_activo and loan_activo.estado == 'prestado' %}
-            <span class="status-badge status-unavailable">Recogido — en tu poder</span>
+          {% elif loan_activo and loan_activo.status == 'borrowed' %}
+            <span class="status-badge status-unavailable">Checked out — in your possession</span>
           {% elif estado_publico == 'available' %}
             {% if current_user %}
               <form action="{% url 'reservar_libro' book.id %}" method="post">

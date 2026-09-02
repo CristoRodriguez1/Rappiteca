@@ -32,7 +32,6 @@ urlpatterns = [
     path('libro/<int:book_id>/', views.detalle_libro, name='detalle_libro'),
     path('reservar/<int:book_id>/', views.reservar_libro, name='reservar_libro'),
     path('cancelar-reserva/<int:loan_id>/', views.cancelar_reserva, name='cancelar_reserva'),
-    path('confirmar-recogida/<int:loan_id>/', views.confirmar_recogida, name='confirmar_recogida'),
     path('admin-prestamos/', views.gestionar_loans, name='gestionar_prestamos'),
     path('admin-prestamos/<int:loan_id>/recogido/', views.marcar_recogido, name='marcar_recogido'),
     path('admin-prestamos/<int:loan_id>/devuelto/', views.marcar_devuelto, name='marcar_devuelto'),

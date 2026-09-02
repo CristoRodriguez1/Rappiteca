@@ -40,25 +40,29 @@ def admin_book_borrower_detail(request, book_id):
 
     book = get_object_or_404(Book, id=book_id)
 
+    # FIX: `estado` y `fecha_reserva` son @property de Python, no campos
+    # reales del modelo — .filter()/.order_by() necesitan los campos reales
+    # (`status`, `reservation_date`). Las properties sí funcionan bien más
+    # abajo, una vez que `loan` ya es una instancia cargada en memoria.
     active_loans = (
         Loan.objects.filter(
             book=book,
-            estado__in=[Loan.ESTADO_RESERVADO, Loan.ESTADO_PRESTADO],
+            status__in=[Loan.STATUS_RESERVED, Loan.STATUS_BORROWED],
         )
         .select_related('user')
-        .order_by('-fecha_reserva')
+        .order_by('-reservation_date')
     )
 
     borrowers = []
     for loan in active_loans:
-        status_label = 'Reserved' if loan.estado == Loan.ESTADO_RESERVADO else 'Checked out'
+        status_label = 'Reserved' if loan.status == Loan.STATUS_RESERVED else 'Checked out'
         borrowers.append({
             'loan': loan,
             'full_name': f'{loan.user.name} {loan.user.last_name}'.strip(),
             'email': loan.user.email,
             'status_label': status_label,
-            'reserved_on': loan.fecha_reserva,
-            'picked_up_on': loan.fecha_recogida,
+            'reserved_on': loan.reservation_date,
+            'picked_up_on': loan.pickup_date,
             'due_date': loan.due_date,
         })
 

@@ -95,23 +95,18 @@
             </div>
 
             <div class="result-action">
-              {% if item.loan_activo and item.loan_activo.estado == 'reservado' %}
+              {% if item.loan_activo and item.loan_activo.status == 'reserved' %}
                 <span class="status-badge status-info">Reserved — pending pickup</span>
                 <div class="result-action-stack">
-                  <form action="{% url 'confirmar_recogida' item.loan_activo.id %}" method="post">
-                    {% csrf_token %}
-                    <input type="hidden" name="q" value="{{ searchTerm|default:'' }}">
-                    <button type="submit" class="btn btn-solid btn-small">Ya lo recogí</button>
-                  </form>
                   <form action="{% url 'cancelar_reserva' item.loan_activo.id %}" method="post">
                     {% csrf_token %}
                     <input type="hidden" name="q" value="{{ searchTerm|default:'' }}">
                     <button type="submit" class="btn btn-ghost btn-small">Cancel reservation</button>
                   </form>
                 </div>
-              {% elif item.loan_activo and item.loan_activo.estado == 'prestado' %}
-                <span class="status-badge status-unavailable">Recogido — en tu poder</span>
-                <p class="result-note">Ya no puedes cancelar esta reserva.</p>
+              {% elif item.loan_activo and item.loan_activo.status == 'borrowed' %}
+                <span class="status-badge status-unavailable">Checked out — in your possession</span>
+                <p class="result-note">This reservation can no longer be cancelled.</p>
               {% elif item.estado_publico == 'available' %}
                 <span class="status-badge status-available">{{ item.estado_publico_label }}</span>
                 {% if current_user %}
