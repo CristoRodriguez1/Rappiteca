@@ -76,10 +76,10 @@
                   <form
                     action="{% url 'eliminar_libro' libro.id %}"
                     method="post"
-                    onsubmit="return confirm('¿Quitar &quot;{{ libro.title|escapejs }}&quot; del inventario? Se borrará de la base de datos.');"
+                    onsubmit="return confirm('Remove &quot;{{ libro.title|escapejs }}&quot; from inventory? It will be deleted from the database.');"
                   >
                     {% csrf_token %}
-                    <button type="submit" class="btn btn-ghost btn-small btn-danger">Quitar libro</button>
+                    <button type="submit" class="btn btn-ghost btn-small btn-danger">Remove book</button>
                   </form>
                 </td>
               </tr>
