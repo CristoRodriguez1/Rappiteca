@@ -692,10 +692,32 @@ header.nav {
   margin-top: 28px;
 }
 
+/* ---------- FR-21 Perfil de usuario ---------- */
+.profile-avatar {
+  width: 120px;
+  height: 120px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--paper);
+  font-family: 'Fraunces', serif;
+  font-size: 2.6rem;
+  font-weight: 600;
+  color: var(--brass-deep);
+}
+
 @media (max-width: 680px) {
   .detail-card {
     flex-direction: column;
     padding: 22px;
+  }
+  .profile-avatar {
+    width: 88px;
+    height: 88px;
+    font-size: 1.9rem;
   }
   .detail-cover {
     width: 140px;
