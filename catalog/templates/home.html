@@ -36,6 +36,7 @@
         {% else %}
           <a href="{% url 'user_loans' %}" class="btn btn-ghost">My loans</a>
         {% endif %}
+        <a href="{% url 'profile' %}" class="btn btn-ghost">Profile</a>
         <a href="{% url 'logout' %}" class="btn btn-solid">Log out</a>
       {% else %}
         <a href="{% url 'signup' %}" class="btn btn-ghost">Sign up</a>
