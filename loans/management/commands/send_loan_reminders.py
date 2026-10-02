@@ -32,9 +32,9 @@ class Command(BaseCommand):
         
         # Define reminder periods: (days_before, notification_type, description)
         reminder_periods = [
-            (7, 'week_before', '1 week before'),
-            (3, 'three_days_before', '3 days before'),
-            (0, 'same_day', 'same day'),
+            (7, Notification.TYPE_LOAN_DUE_WEEK, '1 week before'),
+            (3, Notification.TYPE_LOAN_DUE_3_DAYS, '3 days before'),
+            (0, Notification.TYPE_LOAN_DUE_SAME_DAY, 'same day'),
         ]
         
         total_sent = 0
@@ -60,7 +60,7 @@ class Command(BaseCommand):
                 # Check if we already sent a reminder for this loan for this period
                 existing_notification = Notification.objects.filter(
                     user=loan.user,
-                    notification_type=f'loan_due_{period_type}',
+                    notification_type=period_type,
                     related_loan_id=loan.id
                 ).exists()
                 
@@ -85,7 +85,7 @@ class Command(BaseCommand):
                 # Create in-app notification
                 notification = Notification.objects.create(
                     user=loan.user,
-                    notification_type=f'loan_due_{period_type}',
+                    notification_type=period_type,
                     title=title,
                     message=message,
                     related_loan_id=loan.id
@@ -124,6 +124,7 @@ class Command(BaseCommand):
         ).select_related('user', 'book')
         
         overdue_count = 0
+        overdue_email_count = 0
         for loan in overdue_loans:
             # Check if we already sent an overdue notification
             existing_notification = Notification.objects.filter(
@@ -135,18 +136,45 @@ class Command(BaseCommand):
             if existing_notification:
                 continue
             
+            # Calculate how many days overdue
+            days_overdue = (today - loan.pickup_date.date()).days - 14
+            
             # Create overdue notification
-            Notification.objects.create(
+            notification = Notification.objects.create(
                 user=loan.user,
                 notification_type=Notification.TYPE_LOAN_OVERDUE,
                 title=f'Overdue: "{loan.book.title}"',
-                message=f'Your loan of "{loan.book.title}" is overdue. '
+                message=f'Your loan of "{loan.book.title}" is overdue by {days_overdue} day(s). '
                         f'Please return it as soon as possible to avoid fines.',
                 related_loan_id=loan.id
             )
             
+            # Send email for overdue loan
+            try:
+                email_subject = f'URGENT: Overdue Loan - "{loan.book.title}"'
+                email_message = f'Hello {loan.user.name},\n\n'
+                email_message += f'Your loan of "{loan.book.title}" is overdue by {days_overdue} day(s).\n\n'
+                email_message += f'Original due date: {loan.pickup_date.date() + timedelta(days=14)}\n'
+                email_message += f'Days overdue: {days_overdue}\n\n'
+                email_message += 'Please return the book to the library as soon as possible to avoid fines.\n\n'
+                email_message += 'If you have already returned the book, please disregard this message.\n\n'
+                email_message += 'Best regards,\n'
+                email_message += 'Rappiteca Team'
+                
+                send_mail(
+                    subject=email_subject,
+                    message=email_message,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[loan.user.email],
+                    fail_silently=False,
+                )
+                overdue_email_count += 1
+                self.stdout.write(self.style.WARNING(f'  [WARN] Overdue alert sent ({days_overdue} days): {loan.book.title} -> {loan.user.email}'))
+            except Exception as e:
+                self.stdout.write(self.style.ERROR(f'  [ERROR] Error sending overdue email to {loan.user.email}: {str(e)}'))
+                # Still keep the in-app notification even if email fails
+            
             overdue_count += 1
-            self.stdout.write(self.style.WARNING(f'  [WARN] Overdue notification: {loan.book.title} -> {loan.user.email}'))
         
         # Print summary
         self.stdout.write('')
@@ -161,7 +189,7 @@ class Command(BaseCommand):
                 self.stdout.write(f'{description}: {results["skipped"]} already notified')
         
         if overdue_count > 0:
-            self.stdout.write(self.style.WARNING(f'Overdue: {overdue_count} notifications'))
+            self.stdout.write(self.style.WARNING(f'Overdue: {overdue_count} notifications ({overdue_email_count} emails sent)'))
         
         if total_sent == 0 and total_skipped == 0 and overdue_count == 0:
             self.stdout.write(self.style.SUCCESS('No loans require reminders today.'))
