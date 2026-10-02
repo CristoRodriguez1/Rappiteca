@@ -13,12 +13,16 @@ class User(models.Model):
 
 
 class Notification(models.Model):
-    TYPE_LOAN_DUE = 'loan_due'
+    TYPE_LOAN_DUE_WEEK = 'loan_due_week'
+    TYPE_LOAN_DUE_3_DAYS = 'loan_due_3_days'
+    TYPE_LOAN_DUE_SAME_DAY = 'loan_due_same_day'
     TYPE_LOAN_OVERDUE = 'loan_overdue'
     TYPE_RESERVATION_READY = 'reservation_ready'
     
     TYPE_CHOICES = [
-        (TYPE_LOAN_DUE, 'Loan Due Soon'),
+        (TYPE_LOAN_DUE_WEEK, 'Loan Due - 1 Week'),
+        (TYPE_LOAN_DUE_3_DAYS, 'Loan Due - 3 Days'),
+        (TYPE_LOAN_DUE_SAME_DAY, 'Loan Due - Same Day'),
         (TYPE_LOAN_OVERDUE, 'Loan Overdue'),
         (TYPE_RESERVATION_READY, 'Reservation Ready for Pickup'),
     ]
