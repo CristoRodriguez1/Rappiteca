@@ -329,6 +329,11 @@ header.nav {
   background: #E4E7ED;
   color: #3A4C6B;
 }
+
+.status-muted {
+  background: var(--paper);
+  color: var(--ink-soft);
+}
  
 .btn-small {
   padding: 7px 14px;
@@ -440,6 +445,20 @@ header.nav {
   display: flex;
   justify-content: flex-end;
   margin: 0 0 16px;
+}
+
+/* ---------- FR-22 Historial de préstamos ---------- */
+.history-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 16px;
+}
+
+.history-toolbar p {
+  margin: 0;
 }
 
 /* ---------- Admin form (add book) ---------- */

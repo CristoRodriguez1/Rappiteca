@@ -56,6 +56,10 @@
       {% endfor %}
     {% endif %}
 
+    <div class="admin-toolbar">
+      <a href="{% url 'loan_history' %}" class="btn btn-ghost btn-small">View loan history</a>
+    </div>
+
     {% if loans %}
       <div class="admin-table-wrap">
         <table class="admin-table">

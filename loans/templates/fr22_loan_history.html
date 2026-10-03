@@ -1,0 +1,110 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rappiteca · Loan history</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="{% static 'catalog/css/style.css' %}">
+</head>
+<body>
+
+  <header class="nav">
+    <a href="{% url 'home' %}" class="nav-brand">Rappiteca</a>
+
+    <div class="nav-center">
+      <span class="nav-welcome">Welcome, {{ current_user.name }}</span>
+    </div>
+
+    <nav class="nav-actions">
+      <div class="notification-icon-container">
+        <a href="{% url 'notifications' %}" class="notification-icon">
+          🔔
+          <span class="notification-badge" id="notification-badge" style="display: none;">0</span>
+        </a>
+      </div>
+      <a href="{% url 'user_loans' %}" class="btn btn-ghost">My loans</a>
+      <a href="{% url 'profile' %}" class="btn btn-ghost">Profile</a>
+      <a href="{% url 'logout' %}" class="btn btn-solid">Log out</a>
+    </nav>
+  </header>
+
+  <main class="admin-main">
+    <p class="eyebrow">My account</p>
+    <h1 class="title">Loan history</h1>
+    <hr class="rule">
+
+    {% if loans %}
+      <div class="history-toolbar">
+        <p class="cell-sub">
+          {{ total_count }} loan{{ total_count|pluralize }} in total · {{ returned_count }} returned
+        </p>
+        <a href="{% url 'user_loans' %}" class="btn btn-ghost btn-small">Back to my loans</a>
+      </div>
+
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Book</th>
+              <th>Status</th>
+              <th>Reserved on</th>
+              <th>Picked up on</th>
+              <th>Returned on</th>
+              <th>Renewals</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for loan in loans %}
+              <tr>
+                <td>
+                  <a href="{% url 'detalle_libro' loan.book.id %}" class="table-link">{{ loan.book.title }}</a>
+                  <br><span class="cell-sub">{{ loan.book.author }}</span>
+                </td>
+                <td>
+                  {% if loan.status == 'reserved' %}
+                    <span class="status-badge status-info">Reserved</span>
+                  {% elif loan.status == 'borrowed' %}
+                    <span class="status-badge status-unavailable">Checked out</span>
+                  {% elif loan.status == 'returned' %}
+                    <span class="status-badge status-available">Returned</span>
+                  {% else %}
+                    <span class="status-badge status-muted">Cancelled</span>
+                  {% endif %}
+                </td>
+                <td>{{ loan.reservation_date|date:"M d, Y H:i" }}</td>
+                <td>{{ loan.pickup_date|date:"M d, Y H:i"|default:"—" }}</td>
+                <td>{{ loan.return_date|date:"M d, Y H:i"|default:"—" }}</td>
+                <td>{{ loan.renewals }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p class="empty-state">You haven't borrowed or reserved any books yet.</p>
+      <a href="{% url 'home' %}" class="btn btn-solid">Browse catalog</a>
+    {% endif %}
+  </main>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      fetch('/accounts/notifications/count/')
+        .then(response => response.json())
+        .then(data => {
+          const badge = document.getElementById('notification-badge');
+          if (badge && data.count > 0) {
+            badge.textContent = data.count;
+            badge.style.display = 'inline';
+          }
+        });
+    });
+  </script>
+
+</body>
+</html>
