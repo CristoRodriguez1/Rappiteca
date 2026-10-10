@@ -2,11 +2,12 @@ from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404, redirect, render
 from django.db.models import Q
+from django.utils.http import url_has_allowed_host_and_scheme
 
 from accounts.models import User
 from .forms import BookForm
 from .models import Book
-from loans.models import Loan
+from loans.models import Loan, WaitlistEntry
  
  
 def _usuario_actual(request):
@@ -21,6 +22,13 @@ def _usuario_actual(request):
             request.session.flush()
  
     return current_user
+
+
+def _volver(request, default='home'):
+    target = request.POST.get('next')
+    if target and url_has_allowed_host_and_scheme(target, allowed_hosts={request.get_host()}):
+        return redirect(target)
+    return redirect(default)
  
  
 # ---------- Home + public search ----------
@@ -48,12 +56,18 @@ def home(request):
             'estado_publico': estado_publico,
             'estado_publico_label': book.ESTADO_PUBLICO_LABELS[estado_publico],
             'loan_activo': None,
+            'entrada_cola': None,
         }
         if current_user:
             info['loan_activo'] = Loan.objects.filter(
                 user=current_user,
                 book=book,
                 status__in=[Loan.STATUS_RESERVED, Loan.STATUS_BORROWED],
+            ).first()
+            info['entrada_cola'] = WaitlistEntry.objects.filter(
+                user=current_user,
+                book=book,
+                status=WaitlistEntry.STATUS_WAITING,
             ).first()
         resultados.append(info)
  
@@ -76,6 +90,7 @@ def detalle_libro(request, book_id):
     estado_publico = book.estado_publico()
 
     loan_activo = None
+    entrada_cola = None
     if current_user:
         # FIX: `estado` es una @property de Python, no un campo real del
         # modelo — filtrar por ella tira FieldError. Se usa `status`
@@ -85,6 +100,11 @@ def detalle_libro(request, book_id):
             book=book,
             status__in=[Loan.STATUS_RESERVED, Loan.STATUS_BORROWED],
         ).first()
+        entrada_cola = WaitlistEntry.objects.filter(
+            user=current_user,
+            book=book,
+            status=WaitlistEntry.STATUS_WAITING,
+        ).first()
 
     contexto = {
         'current_user': current_user,
@@ -92,6 +112,7 @@ def detalle_libro(request, book_id):
         'estado_publico': estado_publico,
         'estado_publico_label': book.ESTADO_PUBLICO_LABELS[estado_publico],
         'loan_activo': loan_activo,
+        'entrada_cola': entrada_cola,
     }
     return render(request, 'book_detail.html', contexto)
 
@@ -112,13 +133,14 @@ def reservar_libro(request, book_id):
         Loan.reservar(current_user, book)
         messages.success(request, f'You reserved "{book.title}". Stop by the library to pick it up.')
     except ValidationError as e:
-        messages.error(request, str(e))
+        messages.error(request, ' '.join(e.messages))
  
     return redirect(f"/?q={request.POST.get('q', '')}")
  
  
 # ---------- User action: cancel your own reservation ----------
  
+# FR-18 Cancel reservation
 def cancelar_reserva(request, loan_id):
     if request.method != 'POST':
         return redirect('home')
@@ -139,9 +161,9 @@ def cancelar_reserva(request, loan_id):
         loan.cancelar_reserva()
         messages.success(request, f'You cancelled the reservation for "{loan.book.title}".')
     except ValidationError as e:
-        messages.error(request, str(e))
+        messages.error(request, ' '.join(e.messages))
  
-    return redirect(f"/?q={request.POST.get('q', '')}")
+    return _volver(request, default='user_loans')
  
  
 # ---------- Admin panel ----------
@@ -235,7 +257,7 @@ def marcar_recogido(request, loan_id):
         loan.mark_picked_up()
         messages.success(request, f'"{loan.book.title}" marked as checked out.')
     except ValidationError as e:
-        messages.error(request, str(e))
+        messages.error(request, ' '.join(e.messages))
     return redirect('gestionar_prestamos')
 
 
@@ -252,5 +274,5 @@ def marcar_devuelto(request, loan_id):
         loan.mark_returned()
         messages.success(request, f'"{loan.book.title}" marked as returned.')
     except ValidationError as e:
-        messages.error(request, str(e))
+        messages.error(request, ' '.join(e.messages))
     return redirect('gestionar_prestamos')

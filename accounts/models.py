@@ -18,6 +18,7 @@ class Notification(models.Model):
     TYPE_LOAN_DUE_SAME_DAY = 'loan_due_same_day'
     TYPE_LOAN_OVERDUE = 'loan_overdue'
     TYPE_RESERVATION_READY = 'reservation_ready'
+    TYPE_RESERVATION_EXPIRED = 'reservation_expired'
     
     TYPE_CHOICES = [
         (TYPE_LOAN_DUE_WEEK, 'Loan Due - 1 Week'),
@@ -25,6 +26,7 @@ class Notification(models.Model):
         (TYPE_LOAN_DUE_SAME_DAY, 'Loan Due - Same Day'),
         (TYPE_LOAN_OVERDUE, 'Loan Overdue'),
         (TYPE_RESERVATION_READY, 'Reservation Ready for Pickup'),
+        (TYPE_RESERVATION_EXPIRED, 'Reservation Expired'),
     ]
     
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')

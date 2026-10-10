@@ -7,4 +7,6 @@ urlpatterns = [
     path('historial/', fr22_history.loan_history, name='loan_history'),
     path('devolver/<int:loan_id>/', views.solicitar_devolucion, name='solicitar_devolucion'),
     path('renovar/<int:loan_id>/', views.renovar_prestamo, name='renovar_prestamo'),
+    path('cola/unirse/<int:book_id>/', views.unirse_cola, name='unirse_cola'),
+    path('cola/salir/<int:entry_id>/', views.salir_cola, name='salir_cola'),
 ]

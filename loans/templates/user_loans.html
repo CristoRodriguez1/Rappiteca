@@ -92,14 +92,18 @@
                 <td>
                   {% if loan.due_date %}
                     {{ loan.due_date|date:"M d, Y" }}
+                  {% elif loan.pickup_deadline %}
+                    Pick up by {{ loan.pickup_deadline|date:"M d, Y H:i" }}
                   {% else %}
                     —
                   {% endif %}
                 </td>
                 <td class="admin-table-actions">
+                  {# FR-18 Cancel reservation #}
                   {% if loan.status == 'reserved' %}
                     <form action="{% url 'cancelar_reserva' loan.id %}" method="post">
                       {% csrf_token %}
+                      <input type="hidden" name="next" value="{% url 'user_loans' %}">
                       <button type="submit" class="btn btn-ghost btn-small">Cancel</button>
                     </form>
                   {% elif loan.status == 'borrowed' %}
@@ -125,9 +129,47 @@
           </tbody>
         </table>
       </div>
-    {% else %}
+    {% elif not queue_entries %}
       <p class="empty-state">You don't have any active loans or reservations.</p>
       <a href="{% url 'home' %}" class="btn btn-solid">Browse catalog</a>
+    {% endif %}
+
+    {# FR-17 Reserve unavailable book #}
+    {% if queue_entries %}
+      <div class="queue-section">
+      <h2 class="detail-section-title">Waiting queue</h2>
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Book</th>
+              <th>Position</th>
+              <th>Joined on</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for entry in queue_entries %}
+              <tr>
+                <td>
+                  <a href="{% url 'detalle_libro' entry.book.id %}" class="table-link">{{ entry.book.title }}</a>
+                  <br><span class="cell-sub">{{ entry.book.author }}</span>
+                </td>
+                <td>#{{ entry.position }}</td>
+                <td>{{ entry.created_at|date:"M d, Y H:i" }}</td>
+                <td class="admin-table-actions">
+                  <form action="{% url 'salir_cola' entry.id %}" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{% url 'user_loans' %}">
+                    <button type="submit" class="btn btn-ghost btn-small">Leave queue</button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      </div>
     {% endif %}
   </main>
 

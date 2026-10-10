@@ -786,3 +786,8 @@ header.nav {
   color: var(--brass-deep);
   text-decoration: underline;
 }
+
+/* ---------- FR-17 Waiting queue ---------- */
+.queue-section {
+  margin-top: 40px;
+}

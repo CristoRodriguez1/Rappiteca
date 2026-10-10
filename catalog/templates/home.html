@@ -96,12 +96,13 @@
             </div>
 
             <div class="result-action">
+              {# FR-18 Cancel reservation #}
               {% if item.loan_activo and item.loan_activo.status == 'reserved' %}
                 <span class="status-badge status-info">Reserved — pending pickup</span>
                 <div class="result-action-stack">
                   <form action="{% url 'cancelar_reserva' item.loan_activo.id %}" method="post">
                     {% csrf_token %}
-                    <input type="hidden" name="q" value="{{ searchTerm|default:'' }}">
+                    <input type="hidden" name="next" value="{% url 'home' %}?q={{ searchTerm|default:''|urlencode }}">
                     <button type="submit" class="btn btn-ghost btn-small">Cancel reservation</button>
                   </form>
                 </div>
@@ -119,10 +120,31 @@
                 {% else %}
                   <a href="{% url 'login' %}" class="btn btn-ghost btn-small">Log in to reserve</a>
                 {% endif %}
-              {% elif item.estado_publico == 'borrowed' %}
-                <span class="status-badge status-unavailable">{{ item.estado_publico_label }}</span>
               {% else %}
-                <span class="status-badge status-info">{{ item.estado_publico_label }}</span>
+                <div class="result-action-stack">
+                  {% if item.estado_publico == 'borrowed' %}
+                    <span class="status-badge status-unavailable">{{ item.estado_publico_label }}</span>
+                  {% else %}
+                    <span class="status-badge status-info">{{ item.estado_publico_label }}</span>
+                  {% endif %}
+                  {# FR-17 Reserve unavailable book #}
+                  {% if item.entrada_cola %}
+                    <span class="status-badge status-muted">In queue — position #{{ item.entrada_cola.position }}</span>
+                    <form action="{% url 'salir_cola' item.entrada_cola.id %}" method="post">
+                      {% csrf_token %}
+                      <input type="hidden" name="next" value="{% url 'home' %}?q={{ searchTerm|default:''|urlencode }}">
+                      <button type="submit" class="btn btn-ghost btn-small">Leave queue</button>
+                    </form>
+                  {% elif current_user and current_user.role != 'adm' %}
+                    <form action="{% url 'unirse_cola' item.book.id %}" method="post">
+                      {% csrf_token %}
+                      <input type="hidden" name="next" value="{% url 'home' %}?q={{ searchTerm|default:''|urlencode }}">
+                      <button type="submit" class="btn btn-solid btn-small">Join queue</button>
+                    </form>
+                  {% elif not current_user %}
+                    <a href="{% url 'login' %}" class="btn btn-ghost btn-small">Log in to join the queue</a>
+                  {% endif %}
+                </div>
               {% endif %}
             </div>
           </div>

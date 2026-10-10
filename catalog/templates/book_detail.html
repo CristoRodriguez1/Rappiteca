@@ -101,10 +101,12 @@
         </div>
 
         <div class="detail-actions">
+          {# FR-18 Cancel reservation #}
           {% if loan_activo and loan_activo.status == 'reserved' %}
             <span class="status-badge status-info">Reserved — pending pickup</span>
             <form action="{% url 'cancelar_reserva' loan_activo.id %}" method="post">
               {% csrf_token %}
+              <input type="hidden" name="next" value="{{ request.get_full_path }}">
               <button type="submit" class="btn btn-ghost btn-small">Cancel reservation</button>
             </form>
           {% elif loan_activo and loan_activo.status == 'borrowed' %}
@@ -118,6 +120,22 @@
             {% else %}
               <a href="{% url 'login' %}" class="btn btn-ghost">Log in to reserve</a>
             {% endif %}
+          {# FR-17 Reserve unavailable book #}
+          {% elif entrada_cola %}
+            <span class="status-badge status-info">In queue — position #{{ entrada_cola.position }}</span>
+            <form action="{% url 'salir_cola' entrada_cola.id %}" method="post">
+              {% csrf_token %}
+              <input type="hidden" name="next" value="{{ request.get_full_path }}">
+              <button type="submit" class="btn btn-ghost btn-small">Leave queue</button>
+            </form>
+          {% elif current_user and current_user.role != 'adm' %}
+            <form action="{% url 'unirse_cola' book.id %}" method="post">
+              {% csrf_token %}
+              <input type="hidden" name="next" value="{{ request.get_full_path }}">
+              <button type="submit" class="btn btn-solid">Join queue</button>
+            </form>
+          {% elif not current_user %}
+            <a href="{% url 'login' %}" class="btn btn-ghost">Log in to join the queue</a>
           {% endif %}
         </div>
       </div>
