@@ -129,11 +129,16 @@
               <button type="submit" class="btn btn-ghost btn-small">Leave queue</button>
             </form>
           {% elif current_user and current_user.role != 'adm' %}
-            <form action="{% url 'unirse_cola' book.id %}" method="post">
-              {% csrf_token %}
-              <input type="hidden" name="next" value="{{ request.get_full_path }}">
-              <button type="submit" class="btn btn-solid">Join queue</button>
-            </form>
+            <div class="detail-actions-row">
+              <form action="{% url 'unirse_cola' book.id %}" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                <button type="submit" class="btn btn-solid">Join queue</button>
+              </form>
+              <button id="toggle-alert-btn" class="btn btn-ghost btn-small {% if availability_alert %}btn-active{% endif %}" data-book-id="{{ book.id }}" data-alert-active="{% if availability_alert %}true{% else %}false{% endif %}">
+                {% if availability_alert %}Alert enabled{% else %}Notify when available{% endif %}
+              </button>
+            </div>
           {% elif not current_user %}
             <a href="{% url 'login' %}" class="btn btn-ghost">Log in to join the queue</a>
           {% endif %}
@@ -158,6 +163,84 @@
               badge.style.display = 'inline';
             }
           });
+      }
+      
+      // Handle availability alert toggle
+      const toggleAlertBtn = document.getElementById('toggle-alert-btn');
+      if (toggleAlertBtn) {
+        // Get CSRF token from cookie
+        function getCookie(name) {
+          let cookieValue = null;
+          if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+              const cookie = cookies[i].trim();
+              if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+              }
+            }
+          }
+          return cookieValue;
+        }
+        
+        toggleAlertBtn.addEventListener('click', function() {
+          const bookId = this.getAttribute('data-book-id');
+          const csrfToken = getCookie('csrftoken');
+          
+          console.log('Toggling alert for book:', bookId);
+          console.log('CSRF Token:', csrfToken ? 'Present' : 'Missing');
+          
+          if (!csrfToken) {
+            console.error('CSRF token not found');
+            alert('Security token not found. Please refresh the page and try again.');
+            return;
+          }
+          
+          // Show loading state
+          const originalText = this.textContent;
+          this.textContent = 'Loading...';
+          this.disabled = true;
+          
+          fetch(`/libro/${bookId}/toggle-alert/`, {
+            method: 'POST',
+            headers: {
+              'X-CSRFToken': csrfToken,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({})
+          })
+          .then(response => {
+            console.log('Response status:', response.status);
+            return response.json();
+          })
+          .then(data => {
+            console.log('Response data:', data);
+            if (data.success) {
+              if (data.active) {
+                this.textContent = 'Alert enabled';
+                this.classList.add('btn-active');
+                console.log('Alert enabled');
+              } else {
+                this.textContent = 'Notify when available';
+                this.classList.remove('btn-active');
+                console.log('Alert disabled');
+              }
+            } else if (data.error) {
+              console.error('Server error:', data.error);
+              alert('Error: ' + data.error);
+              this.textContent = originalText;
+            }
+          })
+          .catch(error => {
+            console.error('Network error:', error);
+            alert('Network error. Please check your connection and try again.');
+            this.textContent = originalText;
+          })
+          .finally(() => {
+            this.disabled = false;
+          });
+        });
       }
     });
   </script>

@@ -339,6 +339,26 @@ header.nav {
   padding: 7px 14px;
   font-size: 0.8rem;
 }
+
+.btn-active {
+  background: #3A4C6B;
+  color: white;
+}
+
+.detail-actions-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.result-action-buttons {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
  
 .form-message {
   font-family: 'Inter', sans-serif;
