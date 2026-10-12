@@ -130,17 +130,31 @@
                   {# FR-17 Reserve unavailable book #}
                   {% if item.entrada_cola %}
                     <span class="status-badge status-muted">In queue — position #{{ item.entrada_cola.position }}</span>
-                    <form action="{% url 'salir_cola' item.entrada_cola.id %}" method="post">
-                      {% csrf_token %}
-                      <input type="hidden" name="next" value="{% url 'home' %}?q={{ searchTerm|default:''|urlencode }}">
-                      <button type="submit" class="btn btn-ghost btn-small">Leave queue</button>
-                    </form>
+                    <div class="result-action-buttons">
+                      <form action="{% url 'salir_cola' item.entrada_cola.id %}" method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{% url 'home' %}?q={{ searchTerm|default:''|urlencode }}">
+                        <button type="submit" class="btn btn-ghost btn-small">Leave queue</button>
+                      </form>
+                      <button class="btn btn-ghost btn-small toggle-alert-btn" 
+                              data-book-id="{{ item.book.id }}"
+                              data-alert-active="{% if item.availability_alert %}true{% else %}false{% endif %}">
+                        {% if item.availability_alert %}Alert enabled{% else %}Notify when available{% endif %}
+                      </button>
+                    </div>
                   {% elif current_user and current_user.role != 'adm' %}
-                    <form action="{% url 'unirse_cola' item.book.id %}" method="post">
-                      {% csrf_token %}
-                      <input type="hidden" name="next" value="{% url 'home' %}?q={{ searchTerm|default:''|urlencode }}">
-                      <button type="submit" class="btn btn-solid btn-small">Join queue</button>
-                    </form>
+                    <div class="result-action-buttons">
+                      <form action="{% url 'unirse_cola' item.book.id %}" method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{% url 'home' %}?q={{ searchTerm|default:''|urlencode }}">
+                        <button type="submit" class="btn btn-solid btn-small">Join queue</button>
+                      </form>
+                      <button class="btn btn-ghost btn-small toggle-alert-btn" 
+                              data-book-id="{{ item.book.id }}"
+                              data-alert-active="{% if item.availability_alert %}true{% else %}false{% endif %}">
+                        {% if item.availability_alert %}Alert enabled{% else %}Notify when available{% endif %}
+                      </button>
+                    </div>
                   {% elif not current_user %}
                     <a href="{% url 'login' %}" class="btn btn-ghost btn-small">Log in to join the queue</a>
                   {% endif %}
@@ -170,6 +184,92 @@
             }
           });
       }
+      
+      // Handle availability alert toggle for all buttons on the page
+      function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+          const cookies = document.cookie.split(';');
+          for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+              cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+              break;
+            }
+          }
+        }
+        return cookieValue;
+      }
+      
+      // Add event listeners to all toggle alert buttons
+      const toggleAlertBtns = document.querySelectorAll('.toggle-alert-btn');
+      toggleAlertBtns.forEach(function(btn) {
+        // Set initial state
+        const isActive = btn.getAttribute('data-alert-active') === 'true';
+        if (isActive) {
+          btn.classList.add('btn-active');
+        }
+        
+        btn.addEventListener('click', function() {
+          const bookId = this.getAttribute('data-book-id');
+          const csrfToken = getCookie('csrftoken');
+          
+          console.log('Toggling alert for book:', bookId);
+          console.log('CSRF Token:', csrfToken ? 'Present' : 'Missing');
+          
+          if (!csrfToken) {
+            console.error('CSRF token not found');
+            alert('Security token not found. Please refresh the page and try again.');
+            return;
+          }
+          
+          // Show loading state
+          const originalText = this.textContent;
+          this.textContent = 'Loading...';
+          this.disabled = true;
+          
+          fetch(`/libro/${bookId}/toggle-alert/`, {
+            method: 'POST',
+            headers: {
+              'X-CSRFToken': csrfToken,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({})
+          })
+          .then(response => {
+            console.log('Response status:', response.status);
+            return response.json();
+          })
+          .then(data => {
+            console.log('Response data:', data);
+            if (data.success) {
+              if (data.active) {
+                this.textContent = 'Alert enabled';
+                this.classList.add('btn-active');
+                this.setAttribute('data-alert-active', 'true');
+                console.log('Alert enabled');
+              } else {
+                this.textContent = 'Notify when available';
+                this.classList.remove('btn-active');
+                this.setAttribute('data-alert-active', 'false');
+                console.log('Alert disabled');
+              }
+            } else if (data.error) {
+              console.error('Server error:', data.error);
+              alert('Error: ' + data.error);
+              this.textContent = originalText;
+            }
+          })
+          .catch(error => {
+            console.error('Network error:', error);
+            alert('Network error. Please check your connection and try again.');
+            this.textContent = originalText;
+          })
+          .finally(() => {
+            this.disabled = false;
+          });
+        });
+      });
     });
   </script>
 

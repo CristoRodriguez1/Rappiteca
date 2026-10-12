@@ -38,6 +38,11 @@ urlpatterns = [
     path('admin-inventario/', views.ver_inventario, name='ver_inventario'),
     path('admin-inventario/<int:book_id>/quitar/', views.eliminar_libro, name='eliminar_libro'),
     path('admin-inventario/agregar/', views.agregar_libro, name='agregar_libro'),
+    
+    # Availability alerts
+    path('libro/<int:book_id>/availability-alert/', views.set_availability_alert, name='set_availability_alert'),
+    path('libro/<int:book_id>/remove-alert/', views.remove_availability_alert, name='remove_availability_alert'),
+    path('libro/<int:book_id>/toggle-alert/', views.toggle_availability_alert, name='toggle_availability_alert'),
 
     # FR-16 Display borrowers information
     path('', include('catalog.fr16_urls')),

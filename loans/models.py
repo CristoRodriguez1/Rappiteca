@@ -4,6 +4,8 @@ from django.db import models, transaction
 from django.db.models import F, Q
 from django.core.exceptions import ValidationError
 from django.utils import timezone
+from django.core.mail import send_mail
+from django.conf import settings
 
 from accounts.models import User, Notification
 
@@ -121,6 +123,10 @@ class Loan(models.Model):
 
     @classmethod
     def _release_copy(cls, book):
+        from catalog.models import BookAvailabilityAlert
+        from django.core.mail import send_mail
+        from django.conf import settings
+        
         with transaction.atomic():
             entry = (
                 WaitlistEntry.objects.select_for_update()
@@ -131,13 +137,63 @@ class Loan(models.Model):
             )
 
             if entry is None:
+                # No waitlist entries, increment available copies first
                 book.__class__.objects.filter(pk=book.pk).update(
                     available_copies=F('available_copies') + 1
                 )
                 book.refresh_from_db(fields=['available_copies'])
+                
+                # Now notify users who requested availability alerts
+                if book.available_copies > 0:
+                    cls._notify_availability_alerts(book)
                 return None
 
             return cls._assign_entry(entry, book)
+    
+    @classmethod
+    def _notify_availability_alerts(cls, book):
+        """Notify users who requested availability alerts when a book becomes available."""
+        from catalog.models import BookAvailabilityAlert
+        
+        alerts = BookAvailabilityAlert.objects.filter(
+            book=book,
+            is_active=True
+        ).select_related('user')
+        
+        for alert in alerts:
+            # Create in-app notification
+            Notification.objects.create(
+                user=alert.user,
+                notification_type=Notification.TYPE_BOOK_AVAILABLE,
+                title=f'Available: "{book.title}"',
+                message=f'Good news! "{book.title}" is now available for reservation. '
+                        f'There are {book.available_copies} copy/copies available.',
+                related_book_id=book.id
+            )
+            
+            # Send email notification
+            try:
+                email_subject = f'Book Available: "{book.title}"'
+                email_message = f'Hello {alert.user.name},\n\n'
+                email_message += f'Great news! The book you requested is now available:\n\n'
+                email_message += f'Title: {book.title}\n'
+                email_message += f'Author: {book.author}\n'
+                email_message += f'Available copies: {book.available_copies}\n\n'
+                email_message += f'You can now reserve this book before someone else does.\n\n'
+                email_message += f'Visit the catalog to reserve: http://localhost:8000/\n\n'
+                email_message += f'Best regards,\n'
+                email_message += f'Rappiteca Team'
+                
+                send_mail(
+                    subject=email_subject,
+                    message=email_message,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[alert.user.email],
+                    fail_silently=False,
+                )
+            except Exception as e:
+                # Still keep the in-app notification even if email fails
+                pass
 
     @classmethod
     def assign_free_copies(cls, book):

@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 from accounts.models import User
 from loans.models import Loan
 
+
 class Book(models.Model):
     title = models.CharField(max_length=150)
     author = models.CharField(max_length=150)
@@ -65,3 +66,18 @@ class Book(models.Model):
     def estado_publico_display(self):
         """Etiqueta legible del estado público, para usar directo en plantillas."""
         return self.ESTADO_PUBLICO_LABELS[self.estado_publico()]
+
+
+class BookAvailabilityAlert(models.Model):
+    """Model to track users who want to be notified when a book becomes available."""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='book_alerts')
+    book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name='availability_alerts')
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_active = models.BooleanField(default=True)
+    
+    class Meta:
+        unique_together = ['user', 'book']
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f'{self.user.email} - {self.book.title}'

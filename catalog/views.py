@@ -1,12 +1,13 @@
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404, redirect, render
+from django.http import JsonResponse
 from django.db.models import Q
 from django.utils.http import url_has_allowed_host_and_scheme
 
 from accounts.models import User
 from .forms import BookForm
-from .models import Book
+from .models import Book, BookAvailabilityAlert
 from loans.models import Loan, WaitlistEntry
  
  
@@ -57,6 +58,7 @@ def home(request):
             'estado_publico_label': book.ESTADO_PUBLICO_LABELS[estado_publico],
             'loan_activo': None,
             'entrada_cola': None,
+            'availability_alert': None,
         }
         if current_user:
             info['loan_activo'] = Loan.objects.filter(
@@ -68,6 +70,11 @@ def home(request):
                 user=current_user,
                 book=book,
                 status=WaitlistEntry.STATUS_WAITING,
+            ).first()
+            info['availability_alert'] = BookAvailabilityAlert.objects.filter(
+                user=current_user,
+                book=book,
+                is_active=True
             ).first()
         resultados.append(info)
  
@@ -91,6 +98,7 @@ def detalle_libro(request, book_id):
 
     loan_activo = None
     entrada_cola = None
+    availability_alert = None
     if current_user:
         # FIX: `estado` es una @property de Python, no un campo real del
         # modelo — filtrar por ella tira FieldError. Se usa `status`
@@ -105,6 +113,11 @@ def detalle_libro(request, book_id):
             book=book,
             status=WaitlistEntry.STATUS_WAITING,
         ).first()
+        availability_alert = BookAvailabilityAlert.objects.filter(
+            user=current_user,
+            book=book,
+            is_active=True
+        ).first()
 
     contexto = {
         'current_user': current_user,
@@ -113,6 +126,7 @@ def detalle_libro(request, book_id):
         'estado_publico_label': book.ESTADO_PUBLICO_LABELS[estado_publico],
         'loan_activo': loan_activo,
         'entrada_cola': entrada_cola,
+        'availability_alert': availability_alert,
     }
     return render(request, 'book_detail.html', contexto)
 
@@ -136,6 +150,100 @@ def reservar_libro(request, book_id):
         messages.error(request, ' '.join(e.messages))
  
     return redirect(f"/?q={request.POST.get('q', '')}")
+
+
+# ---------- Availability Alert Management ----------
+
+def set_availability_alert(request, book_id):
+    """User requests to be notified when a book becomes available."""
+    current_user = _usuario_actual(request)
+    if not current_user:
+        messages.error(request, 'You must be logged in to set availability alerts.')
+        return redirect('login')
+
+    book = get_object_or_404(Book, id=book_id)
+    
+    # Check if book is available (user should reserve directly instead)
+    if book.esta_disponible:
+        messages.warning(request, f'"{book.title}" is currently available. You can reserve it directly.')
+        return redirect('detalle_libro', book_id=book.id)
+    
+    # Check if user already has an alert for this book
+    existing_alert = BookAvailabilityAlert.objects.filter(
+        user=current_user,
+        book=book
+    ).first()
+    
+    if existing_alert:
+        if existing_alert.is_active:
+            messages.info(request, f'You already have an availability alert set for "{book.title}".')
+        else:
+            existing_alert.is_active = True
+            existing_alert.save()
+            messages.success(request, f'Your availability alert for "{book.title}" has been reactivated.')
+    else:
+        BookAvailabilityAlert.objects.create(
+            user=current_user,
+            book=book
+        )
+        messages.success(request, f'You will be notified when "{book.title}" becomes available.')
+    
+    return redirect('detalle_libro', book_id=book.id)
+
+
+def remove_availability_alert(request, book_id):
+    """User removes their availability alert for a book."""
+    current_user = _usuario_actual(request)
+    if not current_user:
+        messages.error(request, 'You must be logged in to manage availability alerts.')
+        return redirect('login')
+
+    book = get_object_or_404(Book, id=book_id)
+    
+    alert = BookAvailabilityAlert.objects.filter(
+        user=current_user,
+        book=book
+    ).first()
+    
+    if alert:
+        alert.delete()
+        messages.success(request, f'Availability alert removed for "{book.title}".')
+    else:
+        messages.warning(request, f'You don\'t have an availability alert for "{book.title}".')
+    
+    return redirect('detalle_libro', book_id=book.id)
+
+
+def toggle_availability_alert(request, book_id):
+    """Toggle availability alert for a book (AJAX endpoint)."""
+    current_user = _usuario_actual(request)
+    if not current_user:
+        return JsonResponse({'success': False, 'error': 'Not logged in'}, status=401)
+
+    book = get_object_or_404(Book, id=book_id)
+    
+    alert = BookAvailabilityAlert.objects.filter(
+        user=current_user,
+        book=book
+    ).first()
+    
+    if alert:
+        if alert.is_active:
+            alert.is_active = False
+            alert.save()
+            return JsonResponse({'success': True, 'active': False})
+        else:
+            alert.is_active = True
+            alert.save()
+            return JsonResponse({'success': True, 'active': True})
+    else:
+        # Create new alert
+        BookAvailabilityAlert.objects.create(
+            user=current_user,
+            book=book,
+            is_active=True
+        )
+        return JsonResponse({'success': True, 'active': True})
  
  
 # ---------- User action: cancel your own reservation ----------
