@@ -48,6 +48,8 @@ urlpatterns = [
     path('', include('catalog.fr16_urls')),
 
     path('loans/', include('loans.urls')),
+    # FR-23/FR-24 Fines tab in the admin panel
+    path('', include('fines.urls')),
     # FR-15 Logout (specific paths before accounts.urls include)
     path('accounts/end-session/', fr15_views.end_session_view, name='fr15_end_session'),
     path('accounts/end-session/confirm/', fr15_views.confirm_end_session_view, name='fr15_confirm_end_session'),
