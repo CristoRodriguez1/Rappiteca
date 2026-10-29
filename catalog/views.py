@@ -7,6 +7,7 @@ from django.utils.http import url_has_allowed_host_and_scheme
 
 from accounts.models import User
 from .audit import log_action
+from . import fr27_filters
 from .forms import BookForm
 from .models import AuditLog, Book, BookAvailabilityAlert
 from loans.models import Loan, WaitlistEntry
@@ -47,7 +48,12 @@ def home(request):
             | Q(isbn__icontains=search_term)
             | Q(category__icontains=search_term)
         )
- 
+
+    # FR-27 Filter search
+    filtros = fr27_filters.read_filters(request)
+    books = fr27_filters.apply_filters(books, filtros)
+    filtros_activos = fr27_filters.has_active_filters(filtros)
+
     resultados = []
     for book in books:
         # Computed once per book: `estado_publico` hits the DB.
@@ -83,8 +89,13 @@ def home(request):
         'current_user': current_user,
         'searchTerm': search_term,
         'resultados': resultados,
-        'busqueda_activa': bool(search_term),
-        'busqueda_vacia': bool(search_term) and not books.exists(),
+        'busqueda_activa': bool(search_term) or filtros_activos,
+        'busqueda_vacia': (bool(search_term) or filtros_activos) and not resultados,
+        'filtros': filtros,
+        'filtros_activos': filtros_activos,
+        'categorias': fr27_filters.category_choices(),
+        'availability_options': fr27_filters.AVAILABILITY_OPTIONS,
+        'sort_options': [(value, label) for value, (label, _) in fr27_filters.SORT_OPTIONS.items()],
     }
     return render(request, 'home.html', contexto)
  

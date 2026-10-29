@@ -896,3 +896,53 @@ header.nav {
 @media (max-width: 560px) {
   .book-modal-inner { flex-direction: column; align-items: center; padding: 22px; }
 }
+
+/* ---------- FR-27 Filter search ---------- */
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.filter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1 1 160px;
+}
+
+.filter-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.filter-field select {
+  padding: 9px 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.875rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.filter-field select:focus {
+  outline: none;
+  border-color: var(--brass);
+}
+
+.filter-clear { align-self: flex-end; }
+
+.results-count {
+  margin: 22px 0 0;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--ink-soft);
+}
