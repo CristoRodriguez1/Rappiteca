@@ -6,8 +6,9 @@ from django.db.models import Q
 from django.utils.http import url_has_allowed_host_and_scheme
 
 from accounts.models import User
+from .audit import log_action
 from .forms import BookForm
-from .models import Book, BookAvailabilityAlert
+from .models import AuditLog, Book, BookAvailabilityAlert
 from loans.models import Loan, WaitlistEntry
  
  
@@ -328,6 +329,7 @@ def eliminar_libro(request, book_id):
 
     titulo = book.title
     book.delete()
+    log_action(request, AuditLog.ACTION_BOOK_REMOVED, f'Removed "{titulo}" from inventory')
     messages.success(request, f'Removed "{titulo}" from inventory.')
     return redirect('ver_inventario')
 
@@ -343,6 +345,10 @@ def agregar_libro(request):
         form = BookForm(request.POST, request.FILES)
         if form.is_valid():
             book = form.save()
+            log_action(
+                request, AuditLog.ACTION_BOOK_ADDED,
+                f'Added "{book.title}" to inventory ({book.total_copies} copies)',
+            )
             messages.success(request, f'"{book.title}" was added to inventory.')
             return redirect('ver_inventario')
     else:
@@ -363,6 +369,10 @@ def marcar_recogido(request, loan_id):
     loan = get_object_or_404(Loan, id=loan_id)
     try:
         loan.mark_picked_up()
+        log_action(
+            request, AuditLog.ACTION_LOAN_PICKED_UP,
+            f'Marked "{loan.book.title}" as checked out (user {loan.user.email})',
+        )
         messages.success(request, f'"{loan.book.title}" marked as checked out.')
     except ValidationError as e:
         messages.error(request, ' '.join(e.messages))
@@ -380,6 +390,10 @@ def marcar_devuelto(request, loan_id):
     loan = get_object_or_404(Loan, id=loan_id)
     try:
         loan.mark_returned()
+        log_action(
+            request, AuditLog.ACTION_LOAN_RETURNED,
+            f'Marked "{loan.book.title}" as returned (user {loan.user.email})',
+        )
         messages.success(request, f'"{loan.book.title}" marked as returned.')
     except ValidationError as e:
         messages.error(request, ' '.join(e.messages))

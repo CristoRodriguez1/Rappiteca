@@ -81,3 +81,27 @@ class BookAvailabilityAlert(models.Model):
     
     def __str__(self):
         return f'{self.user.email} - {self.book.title}'
+
+
+class AuditLog(models.Model):
+    """Registro de las acciones que hace un administrador (inventario, préstamos…)."""
+    ACTION_BOOK_ADDED = 'book_added'
+    ACTION_BOOK_UPDATED = 'book_updated'
+    ACTION_BOOK_REMOVED = 'book_removed'
+    ACTION_LOAN_PICKED_UP = 'loan_picked_up'
+    ACTION_LOAN_RETURNED = 'loan_returned'
+
+    admin = models.ForeignKey(
+        User, null=True, blank=True, on_delete=models.SET_NULL, related_name='audit_logs'
+    )
+    # Copia del correo: el registro sigue siendo legible aunque se borre al usuario.
+    admin_email = models.CharField(max_length=254)
+    action = models.CharField(max_length=50)
+    description = models.CharField(max_length=300)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'{self.created_at:%Y-%m-%d %H:%M} {self.admin_email} {self.action}'
