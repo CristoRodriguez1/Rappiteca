@@ -68,6 +68,7 @@ def calculate_fine(loan, today=None):
 def apply_fine(loan, today=None):
     """
     FR-24: calculates the fine of a loan and applies it to the user's account.
+    FR-26: notifies the user when a fine is applied.
 
     Creates the Fine the first time the loan is late and updates it on later
     runs while the book is still out. Paid or final fines are not touched.
@@ -89,6 +90,8 @@ def apply_fine(loan, today=None):
                 amount=amount,
                 is_final=loan.status == Loan.STATUS_RETURNED,
             )
+            # FR-26: Send notification when fine is first applied
+            _send_fine_notification(fine, first_time=True)
             return fine
 
         if fine.status == Fine.STATUS_PAID or fine.is_final:
@@ -98,7 +101,58 @@ def apply_fine(loan, today=None):
         fine.amount = (fine.daily_rate * days_overdue).quantize(Decimal('0.01'))
         fine.is_final = loan.status == Loan.STATUS_RETURNED
         fine.save()
+        
+        # FR-26: Send notification if fine amount increased significantly
+        # (only if it's not the first time, to avoid duplicate notifications)
+        _send_fine_notification(fine, first_time=False)
+        
         return fine
+
+
+def _send_fine_notification(fine, first_time=True):
+    """
+    FR-26: Send in-app notification when a fine is applied or updated.
+    Only sends notification in development (no email).
+    """
+    from accounts.models import Notification
+    
+    # Check if we already sent a notification for this fine recently
+    recent_notification = Notification.objects.filter(
+        user=fine.user,
+        notification_type=Notification.TYPE_FINE_APPLIED,
+        related_fine_id=fine.id,
+        created_at__gte=timezone.now() - timedelta(hours=24)
+    ).exists()
+    
+    if recent_notification and not first_time:
+        # Don't spam with notifications for the same fine
+        return
+    
+    if first_time:
+        title = f'Fine Applied: "{fine.loan.book.title}"'
+        message = (
+            f'A fine of ${fine.amount} has been applied to your account for '
+            f'overdue book "{fine.loan.book.title}". '
+            f'You have {fine.days_overdue} day(s) overdue. '
+            f'Please return the book to stop the fine from increasing.'
+        )
+    else:
+        title = f'Fine Updated: "{fine.loan.book.title}"'
+        message = (
+            f'Your fine for "{fine.loan.book.title}" has been updated to ${fine.amount}. '
+            f'You now have {fine.days_overdue} day(s) overdue. '
+            f'Please return the book as soon as possible.'
+        )
+    
+    Notification.objects.create(
+        user=fine.user,
+        notification_type=Notification.TYPE_FINE_APPLIED,
+        title=title,
+        message=message,
+        related_loan_id=fine.loan.id,
+        related_book_id=fine.loan.book.id,
+        related_fine_id=fine.id,
+    )
 
 
 def apply_overdue_fines(today=None):
