@@ -46,6 +46,8 @@ urlpatterns = [
 
     # FR-16 Display borrowers information
     path('', include('catalog.fr16_urls')),
+    # FR-28 Users information
+    path('', include('accounts.fr28_urls')),
 
     path('loans/', include('loans.urls')),
     # FR-23/FR-24 Fines tab in the admin panel

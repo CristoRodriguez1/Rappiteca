@@ -1,0 +1,122 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rappiteca · Admin · User Profile</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="{% static 'catalog/css/style.css' %}">
+</head>
+<body>
+
+  <header class="nav">
+    <a href="{% url 'home' %}" class="nav-brand">Rappiteca</a>
+    <div class="nav-center">
+      <span class="nav-welcome">Admin panel</span>
+    </div>
+    <nav class="nav-actions">
+      <a href="{% url 'fr15_end_session' %}" class="btn btn-solid">Log out</a>
+    </nav>
+  </header>
+
+
+  <main class="admin-main">
+    <a href="{% url 'fr28_user_list' %}" class="detail-back">← Back to users</a>
+
+    <p class="eyebrow">Admin panel · FR-28</p>
+    <h1 class="title">{{ full_name }}</h1>
+    <p class="cell-sub">{{ profile_user.email }}</p>
+    <hr class="rule">
+
+    <h2 class="detail-section-title">Profile information</h2>
+    <dl class="detail-facts">
+      <div class="detail-fact">
+        <dt>First name</dt>
+        <dd>{{ profile_user.name }}</dd>
+      </div>
+      <div class="detail-fact">
+        <dt>Last name</dt>
+        <dd>{{ profile_user.last_name }}</dd>
+      </div>
+      <div class="detail-fact">
+        <dt>Email</dt>
+        <dd>{{ profile_user.email }}</dd>
+      </div>
+      <div class="detail-fact">
+        <dt>Role</dt>
+        <dd>{{ role_label }}</dd>
+      </div>
+      <div class="detail-fact">
+        <dt>User ID</dt>
+        <dd>#{{ profile_user.id }}</dd>
+      </div>
+    </dl>
+
+    <h2 class="detail-section-title">Account summary</h2>
+    <div class="fines-summary user-summary">
+      <div class="fines-summary-card">
+        <p class="fines-summary-label">Active loans</p>
+        <p class="fines-summary-amount">{{ active_loans|length }}</p>
+      </div>
+      <div class="fines-summary-card">
+        <p class="fines-summary-label">Overdue</p>
+        <p class="fines-summary-amount">{{ overdue_count }}</p>
+      </div>
+      <div class="fines-summary-card">
+        <p class="fines-summary-label">Total loans</p>
+        <p class="fines-summary-amount">{{ total_loans }}</p>
+      </div>
+      <div class="fines-summary-card">
+        <p class="fines-summary-label">Unpaid fines</p>
+        <p class="fines-summary-amount">${{ unpaid_total }}</p>
+      </div>
+    </div>
+
+    <h2 class="detail-section-title">Recent loans</h2>
+    {% if recent_loans %}
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Book</th>
+              <th>Status</th>
+              <th>Reserved on</th>
+              <th>Due date</th>
+              <th>Returned on</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for loan in recent_loans %}
+              <tr>
+                <td>{{ loan.book.title }}</td>
+                <td>
+                  {% if loan.status == 'borrowed' and loan.due_date and loan.due_date < now %}
+                    <span class="status-badge status-unavailable">Overdue</span>
+                  {% elif loan.status == 'borrowed' %}
+                    <span class="status-badge status-unavailable">{{ loan.status|capfirst }}</span>
+                  {% elif loan.status == 'reserved' %}
+                    <span class="status-badge status-info">{{ loan.status|capfirst }}</span>
+                  {% else %}
+                    <span class="status-badge status-muted">{{ loan.status|capfirst }}</span>
+                  {% endif %}
+                </td>
+                <td>{{ loan.reservation_date|date:"M d, Y" }}</td>
+                <td>{{ loan.due_date|date:"M d, Y"|default:"—" }}</td>
+                <td>{{ loan.return_date|date:"M d, Y"|default:"—" }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p class="empty-state">This user has no loans yet.</p>
+    {% endif %}
+  </main>
+
+</body>
+</html>

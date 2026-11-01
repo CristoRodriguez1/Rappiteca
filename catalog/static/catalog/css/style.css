@@ -946,3 +946,7 @@ header.nav {
   font-size: 0.75rem;
   color: var(--ink-soft);
 }
+
+/* ---------- FR-28 Users information ---------- */
+.admin-user-search { margin: 0 0 16px; }
+.user-summary { flex-wrap: wrap; }
