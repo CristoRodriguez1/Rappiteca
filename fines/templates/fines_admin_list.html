@@ -1,0 +1,88 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rappiteca · Admin · Fines</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="{% static 'catalog/css/style.css' %}">
+</head>
+<body>
+
+  <header class="nav">
+    <a href="{% url 'home' %}" class="nav-brand">Rappiteca</a>
+    <div class="nav-center">
+      <span class="nav-welcome">Admin panel</span>
+    </div>
+    <nav class="nav-actions">
+      <a href="{% url 'fr15_end_session' %}" class="btn btn-solid">Log out</a>
+    </nav>
+  </header>
+
+  <main class="admin-main">
+    <p class="eyebrow">Admin panel · FR-23 / FR-24</p>
+    <h1 class="title">Fines</h1>
+    <p class="cell-sub">Fines are calculated from the overdue days of each loan and applied to the user's account.</p>
+    <hr class="rule">
+
+    <nav class="admin-tabs">
+      <a href="{% url 'gestionar_prestamos' %}" class="admin-tab">Loans</a>
+      <a href="{% url 'ver_inventario' %}" class="admin-tab">Inventory</a>
+      <a href="{% url 'fr16_book_borrower_list' %}" class="admin-tab">Book borrowers</a>
+      <a href="{% url 'fines_admin_list' %}" class="admin-tab admin-tab-active">Fines</a>
+    </nav>
+
+    {% if messages %}
+      {% for message in messages %}
+        <p class="form-message form-message-{{ message.tags }}">{{ message }}</p>
+      {% endfor %}
+    {% endif %}
+
+    {% if fines %}
+      <p class="cell-sub">Pending total: <strong>${{ pending_total|floatformat:0 }}</strong></p>
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Book</th>
+              <th>User</th>
+              <th>Due date</th>
+              <th>Days overdue</th>
+              <th>Amount</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for fine in fines %}
+              <tr>
+                <td>{{ fine.loan.book.title }}<br><span class="cell-sub">{{ fine.loan.book.author }}</span></td>
+                <td>{{ fine.user.name }} {{ fine.user.last_name }}<br><span class="cell-sub">{{ fine.user.email }}</span></td>
+                <td>{{ fine.due_date|date:"M d, Y" }}</td>
+                <td>{{ fine.days_overdue }}</td>
+                <td>${{ fine.amount|floatformat:0 }}<br><span class="cell-sub">${{ fine.daily_rate|floatformat:0 }} / day</span></td>
+                <td>
+                  {% if fine.status == 'paid' %}
+                    <span class="status-badge status-available">Paid</span>
+                  {% elif fine.is_final %}
+                    <span class="status-badge status-unavailable">To pay · book returned</span>
+                  {% else %}
+                    <span class="status-badge status-unavailable">To pay · still growing</span>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p class="empty-state">No fines right now. Fines appear here when a loan passes its due date.</p>
+    {% endif %}
+  </main>
+
+</body>
+</html>

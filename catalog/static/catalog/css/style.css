@@ -814,3 +814,53 @@ header.nav {
 .queue-section {
   margin-top: 40px;
 }
+
+/* ---------- Book pop-up (catálogo) ---------- */
+.book-modal {
+  width: min(640px, 92vw);
+  max-height: 88vh;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper-raised);
+  color: var(--ink);
+  text-align: left;
+  box-shadow: 0 18px 50px rgba(32, 38, 47, 0.25);
+}
+
+.book-modal::backdrop {
+  background: rgba(32, 38, 47, 0.55);
+}
+
+.book-modal-inner {
+  position: relative;
+  display: flex;
+  gap: 28px;
+  align-items: flex-start;
+  padding: 28px;
+}
+
+.book-modal-close {
+  position: absolute;
+  top: 8px;
+  right: 14px;
+  background: none;
+  border: none;
+  font-size: 1.7rem;
+  line-height: 1;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+.book-modal-close:hover { color: var(--brass-deep); }
+.book-modal-close:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
+
+/* Versión compacta de las clases del detalle */
+.book-modal .detail-cover { width: 140px; height: 200px; }
+.book-modal .detail-title { font-size: 1.5rem; padding-right: 24px; }
+.book-modal .detail-facts { gap: 20px; margin: 0 0 18px; padding: 14px 0; }
+.book-modal .detail-status { margin-bottom: 16px; }
+.book-modal .detail-actions { margin-top: 20px; }
+
+@media (max-width: 560px) {
+  .book-modal-inner { flex-direction: column; align-items: center; padding: 22px; }
+}
