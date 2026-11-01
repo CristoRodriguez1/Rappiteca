@@ -28,7 +28,7 @@
         <div class="notification-icon-container">
           <a href="{% url 'notifications' %}" class="notification-icon">
             🔔
-            <span class="notification-badge" id="notification-badge" style="display: none;">0</span>
+            <span class="notification-badge" id="notification-badge" style="display: none;"></span>
           </a>
         </div>
         {% if current_user.role == 'adm' %}
@@ -159,8 +159,7 @@
           .then(data => {
             const badge = document.getElementById('notification-badge');
             if (badge && data.count > 0) {
-              badge.textContent = data.count;
-              badge.style.display = 'inline';
+              badge.style.display = 'flex';
             }
           });
       }
