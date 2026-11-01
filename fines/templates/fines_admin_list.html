@@ -44,7 +44,16 @@
     {% endif %}
 
     {% if fines %}
-      <p class="cell-sub">Pending total: <strong>${{ pending_total|floatformat:0 }}</strong></p>
+      <div class="fines-summary">
+        <div class="fines-summary-card">
+          <h3 class="fines-summary-label">Pending Total</h3>
+          <p class="fines-summary-amount">${{ pending_total|floatformat:0 }}</p>
+        </div>
+        <div class="fines-summary-card">
+          <h3 class="fines-summary-label">Awaiting Confirmation</h3>
+          <p class="fines-summary-amount">${{ payment_requested_total|floatformat:0 }}</p>
+        </div>
+      </div>
       <div class="admin-table-wrap">
         <table class="admin-table">
           <thead>
@@ -55,6 +64,7 @@
               <th>Days overdue</th>
               <th>Amount</th>
               <th>Status</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -68,10 +78,34 @@
                 <td>
                   {% if fine.status == 'paid' %}
                     <span class="status-badge status-available">Paid</span>
+                    {% if fine.payment_method == 'online' %}
+                      <br><span class="cell-sub">Online by {{ fine.confirmed_by.name|default:"Admin" }}</span>
+                    {% elif fine.payment_method == 'in_person' %}
+                      <br><span class="cell-sub">In-person by {{ fine.confirmed_by.name|default:"Admin" }}</span>
+                    {% endif %}
+                    <br><span class="cell-sub">Confirmed: {{ fine.payment_confirmed_at|date:"M d, Y" }}</span>
+                  {% elif fine.status == 'payment_requested' %}
+                    <span class="status-badge status-info">Awaiting confirmation</span>
+                    <br><span class="cell-sub">Requested: {{ fine.payment_requested_at|date:"M d, Y" }}</span>
                   {% elif fine.is_final %}
                     <span class="status-badge status-unavailable">To pay · book returned</span>
                   {% else %}
                     <span class="status-badge status-unavailable">To pay · still growing</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if fine.status == 'payment_requested' %}
+                    <form action="{% url 'fine_confirm_payment' fine.id %}" method="post">
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-solid btn-small">Confirm Payment</button>
+                    </form>
+                  {% elif fine.status == 'pending' %}
+                    <form action="{% url 'fine_confirm_in_person' fine.id %}" method="post">
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-ghost btn-small">In-person Payment</button>
+                    </form>
+                  {% elif fine.status == 'paid' %}
+                    <span class="cell-sub">Paid</span>
                   {% endif %}
                 </td>
               </tr>

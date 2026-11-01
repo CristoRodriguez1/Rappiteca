@@ -35,6 +35,7 @@
           <a href="{% url 'gestionar_prestamos' %}" class="btn btn-ghost">Admin panel</a>
         {% else %}
           <a href="{% url 'home' %}" class="btn btn-ghost">Catalog</a>
+          <a href="{% url 'fines_user_list' %}" class="btn btn-ghost">My fines</a>
         {% endif %}
         <a href="{% url 'profile' %}" class="btn btn-ghost">Profile</a>
         <a href="{% url 'logout' %}" class="btn btn-solid">Log out</a>
