@@ -56,7 +56,7 @@
 
     <div class="search-card">
       <span class="search-label">Search the catalog</span>
-      <form class="search-form" action="{% url 'home' %}" method="get">
+      <form class="search-form" id="catalog-search" action="{% url 'home' %}" method="get">
         <input
           type="text"
           name="q"
@@ -65,6 +65,42 @@
         >
         <button type="submit">Search</button>
       </form>
+
+      {# FR-27 Filter search: the selects belong to #catalog-search so they travel with ?q= #}
+      <div class="filter-bar">
+        <label class="filter-field">
+          <span class="filter-label">Category</span>
+          <select name="category" form="catalog-search">
+            <option value="">All categories</option>
+            {% for categoria in categorias %}
+              <option value="{{ categoria }}" {% if categoria|lower == filtros.category|lower %}selected{% endif %}>{{ categoria }}</option>
+            {% endfor %}
+          </select>
+        </label>
+
+        <label class="filter-field">
+          <span class="filter-label">Availability</span>
+          <select name="availability" form="catalog-search">
+            {% for value, label in availability_options %}
+              <option value="{{ value }}" {% if value == filtros.availability %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </label>
+
+        <label class="filter-field">
+          <span class="filter-label">Sort by</span>
+          <select name="sort" form="catalog-search">
+            <option value="">Default</option>
+            {% for value, label in sort_options %}
+              <option value="{{ value }}" {% if value == filtros.sort %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </label>
+
+        {% if filtros_activos %}
+          <a href="{% url 'home' %}{% if searchTerm %}?q={{ searchTerm|urlencode }}{% endif %}" class="btn btn-ghost btn-small filter-clear">Clear filters</a>
+        {% endif %}
+      </div>
     </div>
 
     {% if messages %}
@@ -74,7 +110,9 @@
     {% endif %}
 
     {% if busqueda_vacia %}
-      <p class="empty-state">No results for "{{ searchTerm }}".</p>
+      <p class="empty-state">No results{% if searchTerm %} for "{{ searchTerm }}"{% endif %}{% if filtros_activos %} with the selected filters{% endif %}.</p>
+    {% elif busqueda_activa %}
+      <p class="results-count">{{ resultados|length }} result{{ resultados|length|pluralize }}</p>
     {% endif %}
 
     {% if busqueda_activa %}
@@ -103,7 +141,7 @@
                 <div class="result-action-stack">
                   <form action="{% url 'cancelar_reserva' item.loan_activo.id %}" method="post">
                     {% csrf_token %}
-                    <input type="hidden" name="next" value="{% url 'home' %}?q={{ searchTerm|default:''|urlencode }}">
+                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
                     <button type="submit" class="btn btn-ghost btn-small">Cancel reservation</button>
                   </form>
                 </div>
@@ -134,7 +172,7 @@
                     <div class="result-action-buttons">
                       <form action="{% url 'salir_cola' item.entrada_cola.id %}" method="post">
                         {% csrf_token %}
-                        <input type="hidden" name="next" value="{% url 'home' %}?q={{ searchTerm|default:''|urlencode }}">
+                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
                         <button type="submit" class="btn btn-ghost btn-small">Leave queue</button>
                       </form>
                       <button class="btn btn-ghost btn-small toggle-alert-btn" 
@@ -147,7 +185,7 @@
                     <div class="result-action-buttons">
                       <form action="{% url 'unirse_cola' item.book.id %}" method="post">
                         {% csrf_token %}
-                        <input type="hidden" name="next" value="{% url 'home' %}?q={{ searchTerm|default:''|urlencode }}">
+                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
                         <button type="submit" class="btn btn-solid btn-small">Join queue</button>
                       </form>
                       <button class="btn btn-ghost btn-small toggle-alert-btn" 
