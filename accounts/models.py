@@ -20,6 +20,7 @@ class Notification(models.Model):
     TYPE_RESERVATION_READY = 'reservation_ready'
     TYPE_RESERVATION_EXPIRED = 'reservation_expired'
     TYPE_BOOK_AVAILABLE = 'book_available'
+    TYPE_FINE_APPLIED = 'fine_applied'
     
     TYPE_CHOICES = [
         (TYPE_LOAN_DUE_WEEK, 'Loan Due - 1 Week'),
@@ -29,6 +30,7 @@ class Notification(models.Model):
         (TYPE_RESERVATION_READY, 'Reservation Ready for Pickup'),
         (TYPE_RESERVATION_EXPIRED, 'Reservation Expired'),
         (TYPE_BOOK_AVAILABLE, 'Book Available'),
+        (TYPE_FINE_APPLIED, 'Fine Applied'),
     ]
     
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
@@ -39,6 +41,7 @@ class Notification(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     related_loan_id = models.IntegerField(null=True, blank=True)
     related_book_id = models.IntegerField(null=True, blank=True)
+    related_fine_id = models.IntegerField(null=True, blank=True)
     
     class Meta:
         ordering = ['-created_at']
