@@ -810,6 +810,38 @@ header.nav {
   text-decoration: underline;
 }
 
+/* ---------- Fines Summary Cards ---------- */
+.fines-summary {
+  display: flex;
+  gap: 20px;
+  margin: 20px 0;
+}
+
+.fines-summary-card {
+  background: var(--paper);
+  border: 1px solid var(--ink-light);
+  border-radius: var(--radius);
+  padding: 20px;
+  min-width: 150px;
+}
+
+.fines-summary-label {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  margin: 0 0 10px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.fines-summary-amount {
+  font-family: 'Fraunces', serif;
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 0;
+}
+
 /* ---------- FR-17 Waiting queue ---------- */
 .queue-section {
   margin-top: 40px;

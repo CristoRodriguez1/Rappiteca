@@ -1,0 +1,158 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rappiteca · My Fines</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="{% static 'catalog/css/style.css' %}">
+</head>
+<body>
+
+  <header class="nav">
+    <a href="{% url 'home' %}" class="nav-brand">Rappiteca</a>
+
+    <div class="nav-center">
+      {% if current_user %}
+        <span class="nav-welcome">Welcome, {{ current_user.name }}</span>
+      {% endif %}
+    </div>
+
+    <nav class="nav-actions">
+      {% if current_user %}
+        <div class="notification-icon-container">
+          <a href="{% url 'notifications' %}" class="notification-icon">
+            🔔
+            <span class="notification-badge" id="notification-badge" style="display: none;"></span>
+          </a>
+        </div>
+        {% if current_user.role == 'adm' %}
+          <a href="{% url 'gestionar_prestamos' %}" class="btn btn-ghost">Admin panel</a>
+        {% else %}
+          <a href="{% url 'user_loans' %}" class="btn btn-ghost">My loans</a>
+        {% endif %}
+        <a href="{% url 'fines_user_list' %}" class="btn btn-ghost">My fines</a>
+        <a href="{% url 'profile' %}" class="btn btn-ghost">Profile</a>
+        <a href="{% url 'logout' %}" class="btn btn-solid">Log out</a>
+      {% else %}
+        <a href="{% url 'signup' %}" class="btn btn-ghost">Sign up</a>
+        <a href="{% url 'login' %}" class="btn btn-solid">Log in</a>
+      {% endif %}
+    </nav>
+  </header>
+
+  <main class="admin-main">
+    <p class="eyebrow">My account</p>
+    <h1 class="title">My Fines</h1>
+    <p class="cell-sub">View your fines and their payment status. Fines are calculated from overdue loan days.</p>
+    <hr class="rule">
+
+    {% if messages %}
+      {% for message in messages %}
+        <p class="form-message form-message-{{ message.tags }}">{{ message }}</p>
+      {% endfor %}
+    {% endif %}
+
+    {% if fines %}
+      <div class="fines-summary">
+        <div class="fines-summary-card">
+          <h3 class="fines-summary-label">Pending</h3>
+          <p class="fines-summary-amount">${{ pending_total|floatformat:0 }}</p>
+        </div>
+        <div class="fines-summary-card">
+          <h3 class="fines-summary-label">Awaiting Confirmation</h3>
+          <p class="fines-summary-amount">${{ payment_requested_total|floatformat:0 }}</p>
+        </div>
+        <div class="fines-summary-card">
+          <h3 class="fines-summary-label">Paid</h3>
+          <p class="fines-summary-amount">${{ paid_total|floatformat:0 }}</p>
+        </div>
+      </div>
+
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Book</th>
+              <th>Due date</th>
+              <th>Days overdue</th>
+              <th>Amount</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for fine in fines %}
+              <tr>
+                <td>
+                  <a href="{% url 'detalle_libro' fine.loan.book.id %}" class="table-link">{{ fine.loan.book.title }}</a>
+                  <br><span class="cell-sub">{{ fine.loan.book.author }}</span>
+                </td>
+                <td>{{ fine.due_date|date:"M d, Y" }}</td>
+                <td>{{ fine.days_overdue }}</td>
+                <td>${{ fine.amount|floatformat:0 }}<br><span class="cell-sub">${{ fine.daily_rate|floatformat:0 }} / day</span></td>
+                <td>
+                  {% if fine.status == 'paid' %}
+                    <span class="status-badge status-available">Paid</span>
+                    {% if fine.payment_method == 'online' %}
+                      <br><span class="cell-sub">Online payment</span>
+                    {% elif fine.payment_method == 'in_person' %}
+                      <br><span class="cell-sub">In-person payment</span>
+                    {% endif %}
+                  {% elif fine.status == 'payment_requested' %}
+                    <span class="status-badge status-info">Awaiting confirmation</span>
+                    <br><span class="cell-sub">Requested: {{ fine.payment_requested_at|date:"M d, Y" }}</span>
+                  {% elif fine.is_final %}
+                    <span class="status-badge status-unavailable">To pay · book returned</span>
+                  {% else %}
+                    <span class="status-badge status-unavailable">To pay · still growing</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if fine.status == 'pending' %}
+                    <form action="{% url 'fine_request_payment' fine.id %}" method="post">
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-solid btn-small">Request Payment</button>
+                    </form>
+                  {% elif fine.status == 'payment_requested' %}
+                    <span class="cell-sub">Waiting for admin</span>
+                  {% elif fine.status == 'paid' %}
+                    <span class="status-badge status-available">Paid</span>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p class="empty-state">You have no fines. Fines appear here when a loan passes its due date.</p>
+    {% endif %}
+  </main>
+
+  <input type="hidden" id="is-authenticated" value="{% if current_user %}true{% else %}false{% endif %}">
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Load notification count on page load
+      const isAuthenticated = document.getElementById('is-authenticated').value === 'true';
+      if (isAuthenticated) {
+        fetch('/accounts/notifications/count/')
+          .then(response => response.json())
+          .then(data => {
+            const badge = document.getElementById('notification-badge');
+            if (badge && data.count > 0) {
+              badge.style.display = 'flex';
+            }
+          });
+      }
+    });
+  </script>
+
+</body>
+</html>
