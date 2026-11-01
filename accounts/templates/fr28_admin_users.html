@@ -1,0 +1,88 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rappiteca · Admin · Users</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="{% static 'catalog/css/style.css' %}">
+</head>
+<body>
+
+  <header class="nav">
+    <a href="{% url 'home' %}" class="nav-brand">Rappiteca</a>
+    <div class="nav-center">
+      <span class="nav-welcome">Admin panel</span>
+    </div>
+    <nav class="nav-actions">
+      <a href="{% url 'fr15_end_session' %}" class="btn btn-solid">Log out</a>
+    </nav>
+  </header>
+
+
+  <main class="admin-main">
+    <p class="eyebrow">Admin panel · FR-28</p>
+    <h1 class="title">Users</h1>
+    <p class="cell-sub">Select a registered user to view their profile information.</p>
+    <hr class="rule">
+
+    <nav class="admin-tabs">
+      <a href="{% url 'gestionar_prestamos' %}" class="admin-tab">Loans</a>
+      <a href="{% url 'ver_inventario' %}" class="admin-tab">Inventory</a>
+      <a href="{% url 'fr16_book_borrower_list' %}" class="admin-tab">Book borrowers</a>
+      <a href="{% url 'fines_admin_list' %}" class="admin-tab">Fines</a>
+      <a href="{% url 'fr28_user_list' %}" class="admin-tab admin-tab-active">Users</a>
+    </nav>
+
+    <form class="search-form admin-user-search" action="{% url 'fr28_user_list' %}" method="get">
+      <input type="text" name="q" value="{{ searchTerm }}" placeholder="Name or email…">
+      <button type="submit">Search</button>
+    </form>
+
+    {% if rows %}
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Active loans</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in rows %}
+              <tr>
+                <td>{{ row.full_name }}</td>
+                <td>{{ row.user.email }}</td>
+                <td>
+                  {% if row.user.role == 'adm' %}
+                    <span class="status-badge status-info">{{ row.role_label }}</span>
+                  {% else %}
+                    <span class="status-badge status-muted">{{ row.role_label }}</span>
+                  {% endif %}
+                </td>
+                <td>{{ row.user.active_loans }}</td>
+                <td class="admin-table-actions">
+                  <a href="{% url 'fr28_user_detail' row.user.id %}" class="btn btn-ghost btn-small">View profile</a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% elif searchTerm %}
+      <p class="empty-state">No users match "{{ searchTerm }}".</p>
+    {% else %}
+      <p class="empty-state">No registered users yet.</p>
+    {% endif %}
+  </main>
+
+</body>
+</html>
