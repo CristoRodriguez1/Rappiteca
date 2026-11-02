@@ -1,0 +1,108 @@
+{% extends 'reports_base.html' %}
+
+{% block fr %}FR-32{% endblock %}
+{% block intro %}How many loans were returned late (overdue rate) and how much of the resulting fines has been collected.{% endblock %}
+
+{% block report %}
+  <div class="report-kpis">
+    <div class="report-kpi">
+      <p class="report-kpi-label">Loans picked up</p>
+      <p class="report-kpi-value">{{ report.total_loans }}</p>
+    </div>
+    <div class="report-kpi report-kpi-alert">
+      <p class="report-kpi-label">Overdue rate</p>
+      <p class="report-kpi-value">{{ report.overdue_rate }}%</p>
+    </div>
+    <div class="report-kpi">
+      <p class="report-kpi-label">Total fined</p>
+      <p class="report-kpi-value">${{ report.fined_total|floatformat:"0g" }}</p>
+    </div>
+    <div class="report-kpi report-kpi-good">
+      <p class="report-kpi-label">Collected</p>
+      <p class="report-kpi-value">{{ report.collection_rate }}%</p>
+    </div>
+  </div>
+
+  {% if report.total_loans %}
+    <p class="cell-sub">{{ report.on_time_loans }} on time ({{ report.on_time_rate }}%) · {{ report.overdue_loans }} overdue ({{ report.overdue_rate }}%)</p>
+    <div class="report-split" title="On time vs overdue">
+      <div class="report-split-ok" style="width: {{ report.on_time_rate|stringformat:'s' }}%;"></div>
+      <div class="report-split-late" style="width: {{ report.overdue_rate|stringformat:'s' }}%;"></div>
+    </div>
+
+    <h2 class="report-section-title">Fines by status</h2>
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <thead><tr><th>Status</th><th>Amount</th></tr></thead>
+        <tbody>
+          <tr><td><span class="status-badge status-unavailable">Pending</span></td><td>${{ report.pending_total|floatformat:"0g" }}</td></tr>
+          <tr><td><span class="status-badge status-info">Awaiting confirmation</span></td><td>${{ report.requested_total|floatformat:"0g" }}</td></tr>
+          <tr><td><span class="status-badge status-available">Paid</span></td><td>${{ report.paid_total|floatformat:"0g" }}</td></tr>
+          <tr><td><strong>Total ({{ report.fines_count }} fine{{ report.fines_count|pluralize }})</strong></td><td><strong>${{ report.fined_total|floatformat:"0g" }}</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2 class="report-section-title">Overdue rate by category</h2>
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <thead><tr><th>Category</th><th>Loans</th><th>Overdue</th><th>Rate</th><th></th></tr></thead>
+        <tbody>
+          {% for cat in report.categories %}
+            <tr>
+              <td>{{ cat.name }}</td>
+              <td>{{ cat.loans }}</td>
+              <td>{{ cat.overdue }}</td>
+              <td>{{ cat.rate }}%</td>
+              <td><div class="report-bar"><div class="report-bar-fill report-bar-fill-alert" style="width: {{ cat.rate|stringformat:'s' }}%;"></div></div></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <h2 class="report-section-title">Books overdue right now</h2>
+    {% if report.overdue_now %}
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead><tr><th>Book</th><th>User</th><th>Days overdue</th><th>Fine so far</th></tr></thead>
+          <tbody>
+            {% for row in report.overdue_now %}
+              <tr>
+                <td>{{ row.loan.book.title }}<br><span class="cell-sub">{{ row.loan.book.author }}</span></td>
+                <td>{{ row.loan.user.name }} {{ row.loan.user.last_name }}<br><span class="cell-sub">{{ row.loan.user.email }}</span></td>
+                <td>{{ row.days_overdue }}</td>
+                <td>${{ row.amount|floatformat:"0g" }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p class="empty-state">No book is overdue right now.</p>
+    {% endif %}
+
+    <h2 class="report-section-title">Users with the most unpaid fines</h2>
+    {% if report.top_debtors %}
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead><tr><th>User</th><th>Unpaid fines</th><th>Amount owed</th><th></th></tr></thead>
+          <tbody>
+            {% for d in report.top_debtors %}
+              <tr>
+                <td>{{ d.user__name }} {{ d.user__last_name }}<br><span class="cell-sub">{{ d.user__email }}</span></td>
+                <td>{{ d.fines_count }}</td>
+                <td>${{ d.owed|floatformat:"0g" }}</td>
+                <td class="admin-table-actions"><a href="{% url 'fr28_user_detail' d.user__id %}" class="btn btn-ghost btn-small">View profile</a></td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p class="empty-state">Nobody owes fines right now.</p>
+    {% endif %}
+  {% else %}
+    <p class="empty-state">No loans were picked up in this period.</p>
+  {% endif %}
+{% endblock %}

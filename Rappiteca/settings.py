@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'catalog',
     'loans',
     'fines',
+    'reports',
 ]
 
 MIDDLEWARE = [

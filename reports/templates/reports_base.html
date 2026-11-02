@@ -1,0 +1,70 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rappiteca · Admin · Reports</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="{% static 'catalog/css/style.css' %}">
+  <link rel="stylesheet" href="{% static 'reports/css/reports.css' %}">
+</head>
+<body>
+
+  <header class="nav">
+    <a href="{% url 'home' %}" class="nav-brand">Rappiteca</a>
+    <div class="nav-center">
+      <span class="nav-welcome">Admin panel</span>
+    </div>
+    <nav class="nav-actions">
+      <a href="{% url 'fr15_end_session' %}" class="btn btn-solid">Log out</a>
+    </nav>
+  </header>
+
+  <main class="admin-main">
+    <p class="eyebrow">Admin panel · {% block fr %}{% endblock %}</p>
+    <h1 class="title">Reports</h1>
+    <p class="cell-sub">{% block intro %}{% endblock %}</p>
+    <hr class="rule">
+
+    <nav class="admin-tabs">
+      <a href="{% url 'gestionar_prestamos' %}" class="admin-tab">Loans</a>
+      <a href="{% url 'ver_inventario' %}" class="admin-tab">Inventory</a>
+      <a href="{% url 'fr16_book_borrower_list' %}" class="admin-tab">Book borrowers</a>
+      <a href="{% url 'fines_admin_list' %}" class="admin-tab">Fines</a>
+      <a href="{% url 'fr28_user_list' %}" class="admin-tab">Users</a>
+      <a href="{% url 'reports_index' %}" class="admin-tab admin-tab-active">Reports</a>
+    </nav>
+
+    {% if messages %}
+      {% for message in messages %}
+        <p class="form-message form-message-{{ message.tags }}">{{ message }}</p>
+      {% endfor %}
+    {% endif %}
+
+    <div class="report-toolbar">
+      <div class="report-switch">
+        <a href="{% url 'reports_most_borrowed' %}?period={{ period }}" class="report-chip {% if active_report == 'most_borrowed' %}report-chip-active{% endif %}">Most borrowed books</a>
+        <a href="{% url 'reports_overdue_fines' %}?period={{ period }}" class="report-chip {% if active_report == 'overdue_fines' %}report-chip-active{% endif %}">Overdue &amp; fines</a>
+      </div>
+      <div class="report-periods">
+        {% for key, label in periods %}
+          <a href="?period={{ key }}" class="report-chip {% if key == period %}report-chip-active{% endif %}">{{ label }}</a>
+        {% endfor %}
+      </div>
+    </div>
+
+    {% block report %}{% endblock %}
+
+    <p class="report-footnote">
+      Period: {{ period_label }} · Generated {% now "M d, Y H:i" %} in {{ elapsed_ms|floatformat:0 }} ms (limit: 5 s)
+      · <a href="?period={{ period }}&amp;export=csv" class="table-link">Download CSV</a>
+    </p>
+  </main>
+
+</body>
+</html>

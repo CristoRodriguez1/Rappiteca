@@ -1,0 +1,72 @@
+{% extends 'reports_base.html' %}
+
+{% block fr %}FR-31{% endblock %}
+{% block intro %}Books ranked by how many times they were picked up. Reservations that were cancelled or never picked up are not counted.{% endblock %}
+
+{% block report %}
+  <div class="report-kpis">
+    <div class="report-kpi">
+      <p class="report-kpi-label">Total borrows</p>
+      <p class="report-kpi-value">{{ report.total_borrows }}</p>
+    </div>
+    <div class="report-kpi">
+      <p class="report-kpi-label">Books borrowed</p>
+      <p class="report-kpi-value">{{ report.books_with_borrows }} <span class="cell-sub">/ {{ report.total_books }}</span></p>
+    </div>
+    <div class="report-kpi">
+      <p class="report-kpi-label">Top book</p>
+      <p class="report-kpi-value" style="font-size:1.1rem;">{% if report.rows %}{{ report.rows.0.book.title }}{% else %}—{% endif %}</p>
+    </div>
+  </div>
+
+  {% if report.rows %}
+    <h2 class="report-section-title">Top {{ report.rows|length }} most borrowed books</h2>
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Book</th>
+            <th>Times borrowed</th>
+            <th></th>
+            <th>Different users</th>
+            <th>Out now</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in report.rows %}
+            <tr>
+              <td class="report-rank">{{ row.rank }}</td>
+              <td>{{ row.book.title }}<br><span class="cell-sub">{{ row.book.author }}{% if row.book.category %} · {{ row.book.category }}{% endif %}</span></td>
+              <td><strong>{{ row.times_borrowed }}</strong><br><span class="cell-sub">{{ row.share }}% of all</span></td>
+              <td><div class="report-bar"><div class="report-bar-fill" style="width: {{ row.bar }}%;"></div></div></td>
+              <td>{{ row.borrowers }}</td>
+              <td>{{ row.currently_out }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <h2 class="report-section-title">Borrows by category</h2>
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <thead>
+          <tr><th>Category</th><th>Borrows</th><th>Share</th><th></th></tr>
+        </thead>
+        <tbody>
+          {% for cat in report.categories %}
+            <tr>
+              <td>{{ cat.name }}</td>
+              <td>{{ cat.count }}</td>
+              <td>{{ cat.share }}%</td>
+              <td><div class="report-bar"><div class="report-bar-fill" style="width: {{ cat.share }}%;"></div></div></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p class="empty-state">No books were borrowed in this period.</p>
+  {% endif %}
+{% endblock %}
