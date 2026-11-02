@@ -1,0 +1,13 @@
+services:
+  web:
+    build: .
+    command: sh -c "python manage.py migrate --noinput && python manage.py collectstatic --noinput && gunicorn --bind 0.0.0.0:8000 --workers 2 --threads 2 --timeout 120 --access-logfile - --error-logfile - Rappiteca.wsgi:application"
+    volumes:
+      - .:/app
+    ports:
+      - "80:8000"
+    restart: unless-stopped
+    environment:
+      - DEBUG=0
+      - SECRET_KEY=KfU40lcE3Bb2K1vEsxhZEFR3kBc7UJpNVNaafpow5Em2IFPhhHIuCrSOSYiqjwvyMtM
+      - ALLOWED_HOSTS=*
