@@ -30,6 +30,8 @@ El proyecto está dividido en las siguientes apps, cada una responsable de un do
 |---|---|
 | `Django` | Framework principal del proyecto (modelos, vistas, templates, ORM, panel de administración) |
 | `Pillow` | Procesamiento de imágenes (ej. portadas de libros) |
+| `gunicorn` | Servidor WSGI para producción |
+| `whitenoise` | Manejo de archivos estáticos en producción |
 
 Todas las librerías necesarias están listadas en `requirements.txt`.
 
@@ -38,6 +40,8 @@ Todas las librerías necesarias están listadas en `requirements.txt`.
 El proyecto utiliza **SQLite**, la base de datos por defecto de Django. No se requiere ninguna instalación o configuración adicional: el archivo de base de datos se crea automáticamente al aplicar las migraciones.
 
 ## Instalación
+
+### Opción 1: Instalación tradicional (sin Docker)
 
 ```bash
 # 1. Clonar el repositorio
@@ -63,7 +67,55 @@ python manage.py createsuperuser
 python manage.py runserver
 ```
 
-La aplicación queda disponible en `http://127.0.0.1:8000/` y el panel de administración en `http://127.0.0.1:8000/admin/`.
+### Opción 2: Con Docker (recomendado)
+
+**Requisitos previos:**
+- Docker y Docker Compose instalados en tu computadora
+
+**Pasos:**
+
+```bash
+# 1. Clonar el repositorio
+git clone <url-del-repositorio>
+cd Rappiteca
+
+# 2. Construir y levantar la aplicación con Docker Compose
+docker compose up -d --build
+
+# 3. Crear un superusuario dentro del contenedor (para acceder a /admin)
+docker compose exec web python manage.py createsuperuser
+```
+
+Las migraciones y la recolección de archivos estáticos se ejecutan automáticamente cada vez que el contenedor arranca, por lo que no es necesario correrlas manualmente. El servidor de producción utilizado es **Gunicorn**, y los archivos estáticos se sirven con **WhiteNoise**.
+
+La aplicación queda disponible en `http://localhost/` y el panel de administración en `http://localhost/admin/`.
+
+**Comandos útiles:**
+
+```bash
+# Ver los logs de la aplicación
+docker compose logs -f web
+
+# Detener la aplicación
+docker compose down
+
+# Reiniciar tras cambios en el código
+docker compose up -d --build
+```
+
+> **Nota:** La base de datos (`db.sqlite3`) y los archivos subidos (`media/`) se guardan en la carpeta del proyecto, por lo que se conservan aunque el contenedor se detenga o se recree.
+
+#### Variables de entorno (definidas en `docker-compose.yml`)
+
+| Variable | Descripción |
+|---|---|
+| `DEBUG` | `0` para producción, `1` para desarrollo |
+| `SECRET_KEY` | Clave secreta de Django |
+| `ALLOWED_HOSTS` | Hosts permitidos, separados por coma (`*` acepta cualquiera) |
+
+#### Despliegue en AWS
+
+La aplicación está desplegada en una instancia **EC2** (Ubuntu) con Docker. URL: `http://<IP-ELASTICA>/`
 
 ## Cómo probar la aplicación
 
