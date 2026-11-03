@@ -1,0 +1,120 @@
+/* ---------- FR-31 / FR-32 Reports tab ---------- */
+.report-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 24px;
+}
+
+.report-switch,
+.report-periods {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.report-chip {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--ink-soft);
+  border: 1px solid var(--line);
+  background: var(--paper-raised);
+  padding: 7px 12px;
+  border-radius: var(--radius);
+}
+
+.report-chip:hover { color: var(--ink); border-color: var(--ink-soft); }
+
+.report-chip-active {
+  color: var(--paper-raised);
+  background: var(--ink);
+  border-color: var(--ink);
+}
+
+.report-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 14px;
+  margin: 0 0 28px;
+}
+
+.report-kpi {
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+}
+
+.report-kpi-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin: 0 0 8px;
+}
+
+.report-kpi-value {
+  font-family: 'Fraunces', serif;
+  font-size: 1.9rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--ink);
+}
+
+.report-kpi-alert .report-kpi-value { color: #A2412F; }
+.report-kpi-good .report-kpi-value { color: #3F6B45; }
+
+.report-section-title {
+  font-family: 'Fraunces', serif;
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 34px 0 12px;
+}
+
+.report-bar {
+  height: 10px;
+  min-width: 120px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.report-bar-fill {
+  height: 100%;
+  background: var(--brass);
+}
+
+.report-bar-fill-alert { background: #A2412F; }
+
+.report-rank {
+  font-family: 'Fraunces', serif;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--brass-deep);
+}
+
+.report-split {
+  display: flex;
+  height: 16px;
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  margin: 6px 0 8px;
+}
+
+.report-split-ok { background: #3F6B45; }
+.report-split-late { background: #A2412F; }
+
+.report-footnote {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+  margin-top: 26px;
+}
