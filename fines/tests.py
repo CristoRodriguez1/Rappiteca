@@ -7,7 +7,7 @@ from django.core.management import call_command
 from django.test import TestCase, override_settings
 from django.utils import timezone
 
-from accounts.models import User
+from accounts.models import Notification, User
 from catalog.models import Book
 from loans.models import Loan
 
@@ -152,3 +152,156 @@ class FinesAdminTabTests(TestCase):
         self._login('adm')
         response = self.client.get('/admin-prestamos/')
         self.assertContains(response, 'href="/admin-fines/"')
+
+
+@override_settings(FINE_DAILY_RATE=Decimal('1000.00'))
+class FR25FinePaymentStatusTests(TestCase):
+    def setUp(self):
+        self.admin = User.objects.create(
+            name='Admin', last_name='User', email='admin@example.com',
+            password='secret123', role='adm',
+        )
+        self.user = User.objects.create(
+            name='Ana', last_name='Gomez', email='ana.gomez@example.com',
+            password='secret123', role='stu',
+        )
+        self.other = User.objects.create(
+            name='Bob', last_name='Smith', email='bob@example.com',
+            password='secret123', role='stu',
+        )
+        book = Book.objects.create(title='Dune', author='Frank Herbert', total_copies=3, available_copies=1)
+        other_book = Book.objects.create(title='Ficciones', author='Borges', total_copies=1, available_copies=0)
+        self.loan = Loan.objects.create(
+            user=self.user, book=book, status=Loan.STATUS_BORROWED,
+            pickup_date=timezone.now() - timedelta(days=20),
+        )
+        Loan.objects.create(
+            user=self.other, book=other_book, status=Loan.STATUS_BORROWED,
+            pickup_date=timezone.now() - timedelta(days=20),
+        )
+
+    def _login(self, user):
+        session = self.client.session
+        session['user_id'] = user.id
+        session['user_role'] = user.role
+        session.save()
+
+    def test_anonymous_user_is_sent_to_login(self):
+        response = self.client.get('/my-fines/')
+        self.assertRedirects(response, '/login/')
+
+    def test_user_sees_only_their_own_fines(self):
+        self._login(self.user)
+        response = self.client.get('/my-fines/')
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Dune')
+        self.assertNotContains(response, 'Ficciones')
+        self.assertEqual(response.context['pending_total'], Decimal('6000.00'))
+
+    def test_admin_sees_all_fines(self):
+        self._login(self.admin)
+        response = self.client.get('/admin-fines/')
+        self.assertContains(response, 'Dune')
+        self.assertContains(response, 'Ficciones')
+        self.assertEqual(response.context['pending_total'], Decimal('12000.00'))
+
+    def test_payment_status_goes_from_pending_to_paid(self):
+        apply_fine(self.loan)
+        fine = Fine.objects.get(loan=self.loan)
+
+        self._login(self.user)
+        response = self.client.get('/my-fines/')
+        self.assertContains(response, 'To pay')
+
+        self.client.get(f'/request-payment/{fine.id}/')
+        fine.refresh_from_db()
+        self.assertEqual(fine.status, Fine.STATUS_PAYMENT_REQUESTED)
+        response = self.client.get('/my-fines/')
+        self.assertContains(response, 'Awaiting confirmation')
+
+        self._login(self.admin)
+        self.client.get(f'/confirm-payment/{fine.id}/')
+        fine.refresh_from_db()
+        self.assertEqual(fine.status, Fine.STATUS_PAID)
+        self.assertEqual(fine.confirmed_by, self.admin)
+
+        self._login(self.user)
+        response = self.client.get('/my-fines/')
+        self.assertEqual(response.context['paid_total'], Decimal('6000.00'))
+
+    def test_user_cannot_request_payment_of_another_users_fine(self):
+        other_fine = apply_fine(Loan.objects.get(user=self.other))
+        self._login(self.user)
+        response = self.client.get(f'/request-payment/{other_fine.id}/')
+        self.assertEqual(response.status_code, 404)
+
+    def test_fines_pages_load_within_3_seconds(self):
+        for user, url in ((self.user, '/my-fines/'), (self.admin, '/admin-fines/')):
+            self._login(user)
+            start = time.perf_counter()
+            response = self.client.get(url)
+            self.assertEqual(response.status_code, 200)
+            self.assertLess(time.perf_counter() - start, 3)
+
+
+@override_settings(FINE_DAILY_RATE=Decimal('1000.00'))
+class FR26FineNotificationTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create(
+            name='Ana', last_name='Gomez', email='ana.gomez@example.com',
+            password='secret123', role='stu',
+        )
+        self.book = Book.objects.create(title='Dune', author='Frank Herbert', total_copies=1, available_copies=0)
+        self.loan = Loan.objects.create(
+            user=self.user, book=self.book, status=Loan.STATUS_BORROWED,
+            pickup_date=timezone.now() - timedelta(days=30),
+        )
+
+    def _fine_notifications(self, fine):
+        return Notification.objects.filter(
+            user=self.user,
+            notification_type=Notification.TYPE_FINE_APPLIED,
+            related_fine_id=fine.id,
+        )
+
+    def test_user_is_notified_when_fine_is_applied(self):
+        fine = apply_fine(self.loan)
+        notification = self._fine_notifications(fine).get()
+        self.assertIn('Fine Applied', notification.title)
+        self.assertIn('Dune', notification.title)
+        self.assertIn(str(fine.amount), notification.message)
+        self.assertEqual(notification.related_loan_id, self.loan.id)
+        self.assertFalse(notification.is_read)
+
+    def test_no_notification_when_loan_is_not_overdue(self):
+        self.loan.pickup_date = timezone.now()
+        self.loan.save()
+        apply_fine(self.loan)
+        self.assertFalse(Notification.objects.filter(user=self.user).exists())
+
+    def test_update_within_24_hours_does_not_repeat_notification(self):
+        fine = apply_fine(self.loan)
+        self.loan.pickup_date = timezone.now() - timedelta(days=35)
+        self.loan.save()
+        apply_fine(self.loan)
+        self.assertEqual(self._fine_notifications(fine).count(), 1)
+
+    def test_update_after_24_hours_sends_updated_notification(self):
+        fine = apply_fine(self.loan)
+        self._fine_notifications(fine).update(created_at=timezone.now() - timedelta(hours=25))
+        self.loan.pickup_date = timezone.now() - timedelta(days=35)
+        self.loan.save()
+        apply_fine(self.loan)
+
+        latest = self._fine_notifications(fine).order_by('-created_at').first()
+        self.assertEqual(self._fine_notifications(fine).count(), 2)
+        self.assertIn('Fine Updated', latest.title)
+
+    def test_notification_appears_in_notifications_page(self):
+        apply_fine(self.loan)
+        session = self.client.session
+        session['user_id'] = self.user.id
+        session['user_role'] = self.user.role
+        session.save()
+        response = self.client.get('/accounts/notifications/')
+        self.assertContains(response, 'Fine Applied')
