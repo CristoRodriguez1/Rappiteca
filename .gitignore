@@ -2,3 +2,4 @@
 .claude/
 db.sqlite3
 CLAUDE.md
+staticfiles/
